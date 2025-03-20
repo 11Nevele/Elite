@@ -111,12 +111,15 @@ public class Camera extends CollidableRenderable
                 {
                     GameState.gameState.score+=100;
                     fuel = Math.min(mxFuel, fuel + 50);
+                    Explosion.GenerateExplosion(c.getGameObject().position);
                     GameObject.DestroyObject(c.getGameObject());  
+                    
                 }
                 if(c.getTag().equals("asteroid"))
                 {
                     GameState.gameState.score+=20;
                     fuel = Math.min(mxFuel, fuel + 10);
+                    Explosion.GenerateExplosion(c.getGameObject().position);
                     GameObject.DestroyObject(c.getGameObject());
                 }
             }

@@ -4,6 +4,7 @@ public class GameObject implements AutoCloseable
 {
     public static ArrayList<GameObject> gameObjects = new ArrayList<>();
     public static ArrayList<GameObject> removedObjects = new ArrayList<>();
+    public static ArrayList<GameObject> newObjects = new ArrayList<>();
     
     public static void UpdateAll(double delta)
     {
@@ -15,11 +16,20 @@ public class GameObject implements AutoCloseable
         {
             go.close();
         }
+        for (GameObject go : newObjects)
+        {
+            gameObjects.add(go);
+        }
+        newObjects.clear();
         removedObjects.clear();
     }
     public static void DestroyObject(GameObject go)
     {
         removedObjects.add(go);
+    }
+    public static void AddObject(GameObject go)
+    {
+        newObjects.add(go);
     }
     public Vector3 position;
     public Quaternion rotation;
@@ -27,7 +37,7 @@ public class GameObject implements AutoCloseable
     {
         position = new Vector3();
         rotation = new Quaternion(0,0,0,1);
-        gameObjects.add(this);
+        newObjects.add(this);
     }
     public Vector3 rotation()
     {

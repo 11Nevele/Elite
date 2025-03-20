@@ -143,5 +143,14 @@ public class Models
 
     static final Face[] TIE = ObjReader.ReadObj(System.getProperty("user.dir") + "\\Model\\TIE.obj", 
     System.getProperty("user.dir") + "\\Model\\TIE.mtl", Color.white);
+
+    //a cluster of small triangles red or orange
+    static final Face[] explosion = 
+    {
+        new Face(new Vector3[]{new Vector3(0, 0, 0), new Vector3(1, 0, 0), new Vector3(0, 1, 0)}),
+        new Face(new Vector3[]{new Vector3(0, 0, 0), new Vector3(0, 1, 0), new Vector3(1, 0, 0)})
+
+    };
+
     
 }

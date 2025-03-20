@@ -20,8 +20,8 @@ public class Enemy extends CollidableRenderable
         boundingRadius = 3;
         this.tag = "enemy";
     }
-    final double spd = 50;
-    final double turnSpd = 60;
+    final double spd = 80;
+    final double turnSpd = 70;
     Quaternion rotationVelocity = new Quaternion();
     long nextTime = 0;
     public Quaternion Rand(double radius)
