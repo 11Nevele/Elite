@@ -21,13 +21,13 @@ public class Camera extends CollidableRenderable
         super();
         position = pos;
         rotation = EngineUtil.eulerToQuaternion(rot);
-        plane = new Renderable(Models.Plane);
-        plane.scale = 1.0/400.0;
+        plane = new Renderable(Models.TIE);
+        plane.scale = 1;
         
     }
     double curSpd = 0;
-    final double accel = 100;
-    final double mxSpd = 500;
+    final double accel = 20;
+    final double mxSpd = 100;
 
     final double turnSpd = 90;
     private long nextShootTime = 0;
@@ -56,7 +56,6 @@ public class Camera extends CollidableRenderable
 
         if(Input.input.mouseDown)
         {
-            
             Vector2 mouse = Input.input.mousePos;
             mouse = new Vector2(mouse.x - UI.ui.center.x, mouse.y - UI.ui.center.y);
             if(Math.sqrt(mouse.x * mouse.x + mouse.y * mouse.y) > 40)
@@ -120,6 +119,7 @@ public class Camera extends CollidableRenderable
 
 
         Vector3 v = EngineUtil.quaternionToDirection(rotation);
+        v = v.normalize();
         v.x *= curSpd * delta;
         v.y *= curSpd * delta;
         v.z *= curSpd * delta;
@@ -131,7 +131,7 @@ public class Camera extends CollidableRenderable
         plane.rotation = rotation;
         Vector3 planeDv = new QuaternionT(-20, rotation.rotate(new Vector3(1,0,0)))
         .asQuaternion()
-        .rotate(EngineUtil.quaternionToDirection(rotation)).multi(2.5);
+        .rotate(EngineUtil.quaternionToDirection(rotation)).multi(5);
         plane.position = plane.position.plus(planeDv);
         UI.ui.fuelPercentage = fuel / mxFuel;
         UI.ui.spdPercentage = curSpd / mxSpd;

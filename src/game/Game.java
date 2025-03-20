@@ -103,12 +103,12 @@ public class Game extends TApplet implements MouseMotionListener, MouseListener
     final int HEIGHT = 1080;
     Star sun;
     Star deathStar;
-    Enemy enemy;
     Renderable []stars;
     Camera camera;
     long curTime = 0;
     long preTime = 0;
 
+    Renderable tmp;
     public void init()
     {
         this.setSize(WIDTH, HEIGHT);
@@ -125,7 +125,7 @@ public class Game extends TApplet implements MouseMotionListener, MouseListener
             stars[i] = new Renderable();
             stars[i].model = new Face[2];
             //random a white blue to white red color
-            Color c = new Color(255,150,50);
+            Color c = new Color(50,150,255);
             for(int j = 0; j < 2; j++)
             {
                 stars[i].model[j] = new Face(Models.star[j]);
@@ -138,7 +138,7 @@ public class Game extends TApplet implements MouseMotionListener, MouseListener
             stars[i].rotation.y = ((double)Math.random() - 0.5f);
             stars[i].rotation.z = ((double)Math.random() - 0.5f);
         }
-        camera = new Camera(new Vector3(0, 10000, 0), new Vector3(0,0,0));
+        camera = new Camera(new Vector3(0, 0, 0), new Vector3(0,0,0));
         camera.tag = "MainCamera";
 
         sun = new Star(new Vector3(), 2, 2, new Vector3(1,0,0), Models.GetSphere(500));
@@ -150,11 +150,6 @@ public class Game extends TApplet implements MouseMotionListener, MouseListener
         deathStar.boundingRadius = 200;
         deathStar.tag = "star";
 
-        enemy = new Enemy(Models.Plane);
-        enemy.scale = 0.1f;
-        enemy.position.z = -9500;
-        enemy.boundingRadius = 1;
-        enemy.tag = "enemy";
 
         Renderer.renderer = new Renderer(getScreenBuffer(), WIDTH, HEIGHT);
         System.out.println(curTime);

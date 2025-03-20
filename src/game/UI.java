@@ -40,7 +40,7 @@ public class UI
         long curTime = System.currentTimeMillis();
         if(curTime <= bulletFinishedTime)
         {
-            g.setColor(Color.WHITE);
+            g.setColor(Color.red);
             if(Renderer.renderer.getScale() > 700)
             {
                 g.drawLine(WIDTH / 2 - 200, HEIGHT, WIDTH/2 - 2, HEIGHT/2);
@@ -50,8 +50,8 @@ public class UI
             else
             {
                 //two white line from buttom left to middle and buttom right to middle
-                g.drawLine(WIDTH / 2 - 15 + (int)(spdPercentage * 4), 710 - (int)(spdPercentage * 50), WIDTH/2 - 2, HEIGHT/2);
-                g.drawLine(WIDTH / 2 + 15 - (int)(spdPercentage * 4), 710 - (int)(spdPercentage * 50), WIDTH/2 + 2, HEIGHT/2);
+                g.drawLine(WIDTH / 2 - 25 + (int)(spdPercentage * 4), 740 - (int)(spdPercentage * 50), WIDTH/2 - 2, HEIGHT/2);
+                g.drawLine(WIDTH / 2 + 25 - (int)(spdPercentage * 4), 740 - (int)(spdPercentage * 50), WIDTH/2 + 2, HEIGHT/2);
 
             }
         }

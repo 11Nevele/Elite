@@ -3,6 +3,7 @@ package game;
 import game.engine.CollidableRenderable;
 import game.engine.EngineUtil;
 import game.engine.Face;
+import game.engine.GameObject;
 import game.engine.Quaternion;
 import game.engine.QuaternionT;
 import game.engine.Renderer;
@@ -11,16 +12,16 @@ import java.util.Random;
 
 public class Enemy extends CollidableRenderable
 {
-    public Enemy()
-    {
-        super();
-    }
     public Enemy(Face[] newModel) 
     {
         super(newModel);
+        position = EngineUtil.RandomOnSphere(1).multi(500 + (Math.random() * 4500));
+        this.scale = 1.0/200.0;
+        boundingRadius = 2;
+        this.tag = "enemy";
     }
-    final double spd = 300;
-    final double turnSpd = 90f;
+    final double spd = 50;
+    final double turnSpd = 30;
     Quaternion rotationVelocity = new Quaternion();
     long nextTime = 0;
     public Quaternion Rand(double radius)
@@ -40,6 +41,10 @@ public class Enemy extends CollidableRenderable
     public void Update(double delta)
     {
         super.Update(delta);
+        if(this.position.distance(new Vector3()) > 10000)
+        {
+            GameObject.DestroyObject(this);
+        }
         //gettime
         if(System.currentTimeMillis() >= nextTime)
         {
@@ -56,12 +61,19 @@ public class Enemy extends CollidableRenderable
         }
         //change the velocity vector to the rotation of the enemy
         Vector3 v = EngineUtil.quaternionToDirection(rotation);
+        v =v.normalize();
         v.x *= spd * delta;
         v.y *= spd * delta;
         v.z *= spd * delta;
         
         position = position.plus(v);
         Renderer.renderer.Render(this);
+    }
+    @Override
+    public void destroy()
+    {
+        super.destroy();
+        AstroidManager.instance.Unrigister(this);
     }
     
 }

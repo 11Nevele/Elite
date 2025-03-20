@@ -126,7 +126,7 @@ public class Models
 
 
     static final Face[] Plane = ObjReader.ReadObj("C:\\Users\\nick.wang\\Downloads\\Spaceship\\Lo_poly_Spaceship_01_by_Liz_Reddington.obj", 
-    "C:\\Users\\nick.wang\\Downloads\\Spaceship\\Lo_poly_Spaceship_01_by_Liz_Reddington.mtl", Color.gray);
+    "C:\\Users\\nick.wang\\Downloads\\Spaceship\\Lo_poly_Spaceship_01_by_Liz_Reddington.mtl", Color.red);
 
     static final Face[] DeathStar = ObjReader.ReadObj("C:\\Users\\nick.wang\\Downloads\\Death Star 1 V1\\untitled.obj",
     "C:\\Users\\nick.wang\\Downloads\\Death Star 1 V1\\untitled.mtl", Color.gray);
@@ -139,5 +139,8 @@ public class Models
         ObjReader.ReadObj(System.getProperty("user.dir") + "\\Model\\asteroids1.obj", null, Color.lightGray),
         ObjReader.ReadObj(System.getProperty("user.dir") + "\\Model\\asteroids2.obj", null, Color.lightGray),
     };
+
+    static final Face[] TIE = ObjReader.ReadObj(System.getProperty("user.dir") + "\\Model\\TIE.obj", 
+    System.getProperty("user.dir") + "\\Model\\TIE.mtl", Color.white);
     
 }
