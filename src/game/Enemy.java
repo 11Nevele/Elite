@@ -17,11 +17,11 @@ public class Enemy extends CollidableRenderable
         super(newModel);
         position = EngineUtil.RandomOnSphere(1).multi(500 + (Math.random() * 4500));
         this.scale = 1.0/200.0;
-        boundingRadius = 2;
+        boundingRadius = 3;
         this.tag = "enemy";
     }
     final double spd = 50;
-    final double turnSpd = 30;
+    final double turnSpd = 60;
     Quaternion rotationVelocity = new Quaternion();
     long nextTime = 0;
     public Quaternion Rand(double radius)

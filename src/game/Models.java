@@ -11,7 +11,8 @@ public class Models
     public final static Color green = new Color(0, 255, 0);
     public final static Color blue = new Color(0, 0, 255);
     public final static Color yellow = new Color(255, 255, 0);
-    public final static Color cyan = new Color(0, 255, 255);
+    public final static Color lightYellow = new Color(255, 255, 180);
+    public final static Color cyan = new Color(180, 255, 255);
     public final static Color magenta = new Color(255, 0, 255);
     public final static Color white = new Color(255, 255, 255);
     public final static Color black = new Color(0, 0, 0);
@@ -126,7 +127,7 @@ public class Models
 
 
     static final Face[] Plane = ObjReader.ReadObj("C:\\Users\\nick.wang\\Downloads\\Spaceship\\Lo_poly_Spaceship_01_by_Liz_Reddington.obj", 
-    "C:\\Users\\nick.wang\\Downloads\\Spaceship\\Lo_poly_Spaceship_01_by_Liz_Reddington.mtl", Color.red);
+    "C:\\Users\\nick.wang\\Downloads\\Spaceship\\Lo_poly_Spaceship_01_by_Liz_Reddington.mtl", Color.cyan);
 
     static final Face[] DeathStar = ObjReader.ReadObj("C:\\Users\\nick.wang\\Downloads\\Death Star 1 V1\\untitled.obj",
     "C:\\Users\\nick.wang\\Downloads\\Death Star 1 V1\\untitled.mtl", Color.gray);
@@ -135,9 +136,9 @@ public class Models
 
     static final Face[][] Astroids = 
     {
-        ObjReader.ReadObj(System.getProperty("user.dir") + "\\Model\\asteroids0.obj", null, Color.lightGray),
-        ObjReader.ReadObj(System.getProperty("user.dir") + "\\Model\\asteroids1.obj", null, Color.lightGray),
-        ObjReader.ReadObj(System.getProperty("user.dir") + "\\Model\\asteroids2.obj", null, Color.lightGray),
+        ObjReader.ReadObj(System.getProperty("user.dir") + "\\Model\\asteroids0.obj", null, lightYellow),
+        //ObjReader.ReadObj(System.getProperty("user.dir") + "\\Model\\asteroids1.obj", null, Color.yellow),
+        //ObjReader.ReadObj(System.getProperty("user.dir") + "\\Model\\asteroids2.obj", null, Color.yellow),
     };
 
     static final Face[] TIE = ObjReader.ReadObj(System.getProperty("user.dir") + "\\Model\\TIE.obj", 

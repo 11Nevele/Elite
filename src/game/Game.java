@@ -125,7 +125,7 @@ public class Game extends TApplet implements MouseMotionListener, MouseListener
             stars[i] = new Renderable();
             stars[i].model = new Face[2];
             //random a white blue to white red color
-            Color c = new Color(50,150,255);
+            Color c = new Color(0,0,0);
             for(int j = 0; j < 2; j++)
             {
                 stars[i].model[j] = new Face(Models.star[j]);
@@ -145,7 +145,7 @@ public class Game extends TApplet implements MouseMotionListener, MouseListener
         sun.boundingRadius = 500;
         sun.tag = "star";
 
-        deathStar = new Star(new Vector3(10000, 0, 0), 60, 300, new Vector3(0,1,0), Models.DeathStar);
+        deathStar = new Star(new Vector3(10000, 0, 0), 60, 1200, new Vector3(0,1,0), Models.DeathStar);
         deathStar.scale = 1000;
         deathStar.boundingRadius = 200;
         deathStar.tag = "star";

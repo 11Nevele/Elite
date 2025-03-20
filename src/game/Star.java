@@ -22,7 +22,7 @@ public class Star extends CollidableRenderable
         this.rotationPeriod = rotationPeriod;
         this.rotationAxis = rotationAxis;
         orbitRadius = position.distance(new Vector3());
-        rotationVelocity = 360.0 / rotationPeriod;
+        rotationVelocity = 360.0 / selfRotationPeriod;
         orbitSpeed = 360.0 / rotationPeriod;
     }
 

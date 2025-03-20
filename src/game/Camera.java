@@ -53,6 +53,11 @@ public class Camera extends CollidableRenderable
             curSpd = Math.min(mxSpd, curSpd + accel * delta);
         }
 
+        double slowdownScale = 1;
+        if(Input.input.keys[KeyEvent.VK_F])
+        {
+            slowdownScale = 0.3;
+        }
 
         if(Input.input.mouseDown)
         {
@@ -76,21 +81,21 @@ public class Camera extends CollidableRenderable
                 }
 
                 fuel = Math.max(0, fuel - fuelBurn * delta * mouse.magnitude());
-                rotation = rotation.multiply(Quaternion.PITCH(-mouse.y * turnSpd * delta))
-                .multiply(Quaternion.YAW(mouse.x * turnSpd * delta));
+                rotation = rotation.multiply(Quaternion.PITCH(-mouse.y * turnSpd * delta * slowdownScale))
+                .multiply(Quaternion.YAW(mouse.x * turnSpd * delta * slowdownScale));
             }
         }
         
         
         if(Input.input.keys[KeyEvent.VK_E])
         {
-            fuel = Math.max(0, fuel - fuelBurn * delta);
-            rotation = rotation.multiply(Quaternion.ROLL(turnSpd * delta));
+            fuel = Math.max(0, fuel - fuelBurn * delta * slowdownScale);
+            rotation = rotation.multiply(Quaternion.ROLL(turnSpd * delta * slowdownScale));
         }
         if(Input.input.keys[KeyEvent.VK_Q])
         {
-            fuel = Math.max(0, fuel - fuelBurn * delta);
-            rotation = rotation.multiply(Quaternion.ROLL(-turnSpd * delta));
+            fuel = Math.max(0, fuel - fuelBurn * delta * slowdownScale);
+            rotation = rotation.multiply(Quaternion.ROLL(-turnSpd * delta * slowdownScale));
         }
         
         if(Input.input.keyPressed[KeyEvent.VK_SPACE] && System.currentTimeMillis() >= nextShootTime)
@@ -119,10 +124,9 @@ public class Camera extends CollidableRenderable
 
 
         Vector3 v = EngineUtil.quaternionToDirection(rotation);
-        v = v.normalize();
-        v.x *= curSpd * delta;
-        v.y *= curSpd * delta;
-        v.z *= curSpd * delta;
+        v = v.normalize().multi(curSpd * delta);
+        
+        
         
 
         position = position.plus(v);
