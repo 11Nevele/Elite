@@ -152,15 +152,15 @@ public class Game extends TApplet implements MouseMotionListener, MouseListener
             stars[i].rotation.y = ((double)Math.random() - 0.5f);
             stars[i].rotation.z = ((double)Math.random() - 0.5f);
         }
-        camera = new Camera(new Vector3(0, 0, 0), new Vector3(0,0,0));
+        camera = new Camera(new Vector3(7000, 0, 0), new Vector3(0,-90,0));
         camera.tag = "MainCamera";
 
-        sun = new Star(new Vector3(), 2, 2, new Vector3(1,0,0), Models.GetSphere(500));
-        sun.boundingRadius = 500;
+        sun = new Star(new Vector3(), 2, 2, new Vector3(1,0,0), Models.GetSphere(1000));
+        sun.boundingRadius = 1000;
         sun.tag = "star";
 
         deathStar = new Star(new Vector3(10000, 0, 0), 60, 1200, new Vector3(0,1,0), Models.DeathStar);
-        deathStar.scale = 1000;
+        deathStar.scale = 2000;
         deathStar.boundingRadius = 200;
         deathStar.tag = "star";
 

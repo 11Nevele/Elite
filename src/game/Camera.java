@@ -63,7 +63,7 @@ public class Camera extends CollidableRenderable
         {
             Vector2 mouse = Input.input.mousePos;
             mouse = new Vector2(mouse.x - UI.ui.center.x, mouse.y - UI.ui.center.y);
-            if(Math.sqrt(mouse.x * mouse.x + mouse.y * mouse.y) > 40)
+            if(Math.sqrt(mouse.x * mouse.x + mouse.y * mouse.y) > 5)
             {
                 if(mouse.x > UI.ui.HEIGHT / 2)
                 {
