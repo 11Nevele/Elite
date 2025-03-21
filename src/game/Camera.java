@@ -103,7 +103,8 @@ public class Camera extends CollidableRenderable
             UI.ui.DrawBullet();
             System.out.println("Shoot");
             nextShootTime = System.currentTimeMillis() + (long)(shootDelay * 1000);
-            
+            Audio.lazer.play();
+            fuel = Math.max(0, fuel - 5);
             ArrayList<Collidable> collis = CollisionManager.instance.Raycast(position, EngineUtil.quaternionToDirection(rotation));
             for(Collidable c : collis)
             {
@@ -113,7 +114,7 @@ public class Camera extends CollidableRenderable
                     fuel = Math.min(mxFuel, fuel + 50);
                     Explosion.GenerateExplosion(c.getGameObject().position);
                     GameObject.DestroyObject(c.getGameObject());  
-                    
+                    Audio.explosionShip.play();
                 }
                 if(c.getTag().equals("asteroid"))
                 {
@@ -121,6 +122,7 @@ public class Camera extends CollidableRenderable
                     fuel = Math.min(mxFuel, fuel + 10);
                     Explosion.GenerateExplosion(c.getGameObject().position);
                     GameObject.DestroyObject(c.getGameObject());
+                    Audio.explosionAsteroid.play();
                 }
             }
         }

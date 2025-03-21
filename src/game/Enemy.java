@@ -15,7 +15,7 @@ public class Enemy extends CollidableRenderable
     public Enemy(Face[] newModel) 
     {
         super(newModel);
-        position = EngineUtil.RandomOnSphere(1).multi(500 + (Math.random() * 4500));
+        position = EngineUtil.RandomOnSphere(1).multi(1000 + (Math.random() * 4000));
         this.scale = 0.1;
         boundingRadius = 3;
         this.tag = "enemy";

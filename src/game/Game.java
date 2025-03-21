@@ -24,6 +24,8 @@ import java.util.Random;
 
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
+import javafx.scene.media.AudioClip;
+import java.io.File;
 
 
 public class Game extends TApplet implements MouseMotionListener, MouseListener
@@ -112,14 +114,28 @@ public class Game extends TApplet implements MouseMotionListener, MouseListener
     public void init()
     {
         this.setSize(WIDTH, HEIGHT);
+
+        Audio.ambient = new javafx.scene.media.AudioClip
+        (new File(getCodeBase() + "\\Sound\\Ambient.wav").toURI().toString());
+        Audio.ambient.setCycleCount(javafx.scene.media.AudioClip.INDEFINITE);
+        Audio.ambient.play(0.1);
+
+        Audio.explosionAsteroid = new javafx.scene.media.AudioClip
+        (new File(getCodeBase() + "\\Sound\\explosion01.wav").toURI().toString());
+
+        Audio.explosionShip = new javafx.scene.media.AudioClip
+        (new File(getCodeBase() + "\\Sound\\explosion.wav").toURI().toString());
+
+        Audio.lazer = new javafx.scene.media.AudioClip
+        (new File(getCodeBase() + "\\Sound\\Hyper 7.wav").toURI().toString());
+
         curTime = System.currentTimeMillis();
         preTime = System.currentTimeMillis();
         this.addMouseMotionListener(this);
         this.addMouseListener(this);
         UI.ui = new UI(getGraphics(), WIDTH, HEIGHT);
-
+    
         stars = new Renderable[200];
-        Random rand = new Random();
         for(int i = 0; i < 200; i++)
         {
             stars[i] = new Renderable();
@@ -129,8 +145,6 @@ public class Game extends TApplet implements MouseMotionListener, MouseListener
             for(int j = 0; j < 2; j++)
             {
                 stars[i].model[j] = new Face(Models.star[j]);
-                stars[i].model[j].fill = c;
-
             }
             stars[i].position = EngineUtil.RandomOnSphere(100000);
             stars[i].rotation.w = ((double)Math.random() - 0.5f);

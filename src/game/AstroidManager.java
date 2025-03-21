@@ -21,7 +21,7 @@ public class AstroidManager
 
     public void Update(double delta)
     {
-        while(astroids.size() < 30)
+        while(astroids.size() < 50)
         {
             astroids.add(new Astroid());
         }

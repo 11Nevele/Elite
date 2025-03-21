@@ -40,7 +40,7 @@ public class UI
         long curTime = System.currentTimeMillis();
         if(curTime <= bulletFinishedTime)
         {
-            g.setColor(Color.red);
+            g.setColor(Color.green);
             if(Renderer.renderer.getScale() > 700)
             {
                 g.drawLine(WIDTH / 2 - 200, HEIGHT, WIDTH/2 - 2, HEIGHT/2);
@@ -92,6 +92,7 @@ public class UI
         g.drawString("Mouse - Rotate    Q/E - Roll", 20, 70);
         g.drawString("A/S/D Change View", 20, 90);
         g.drawString("Space - Shoot", 20, 110);
+        g.drawString("F - Aim", 20, 130);
 
         //fuel bar
         g.setColor(Color.WHITE);

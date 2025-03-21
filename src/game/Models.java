@@ -8,6 +8,7 @@ public class Models
 {
     //define common colors
     public final static Color red = new Color(255, 0, 0);
+    public final static Color lightRed = new Color(255, 180, 180);
     public final static Color green = new Color(0, 255, 0);
     public final static Color blue = new Color(0, 0, 255);
     public final static Color yellow = new Color(255, 255, 0);
@@ -48,8 +49,8 @@ public class Models
     };
 
     static final Face[] star = {
-        new Face(new Vector3[]{new Vector3(-500, 0, 0), new Vector3(0,866,0), new Vector3(500, 0, 0)}, clear, clear),
-        new Face(new Vector3[]{new Vector3(-500, 0, 0), new Vector3(0,866,0), new Vector3(500, 0, 0)}, clear, clear)
+        new Face(new Vector3[]{new Vector3(-500, 0, 0), new Vector3(0,866,0), new Vector3(500, 0, 0)}, white, white),
+        new Face(new Vector3[]{new Vector3(-500, 0, 0), new Vector3(0,866,0), new Vector3(500, 0, 0)}, white, white)
     };
 
 
@@ -127,7 +128,7 @@ public class Models
 
 
     static final Face[] Plane = ObjReader.ReadObj(System.getProperty("user.dir") + "\\Model\\Plane.obj",
-    System.getProperty("user.dir") + "\\Model\\Plane.mtl", Color.cyan);
+    System.getProperty("user.dir") + "\\Model\\Plane.mtl", lightRed);
 
     static final Face[] DeathStar = ObjReader.ReadObj("C:\\Users\\nick.wang\\Downloads\\Death Star 1 V1\\untitled.obj",
     "C:\\Users\\nick.wang\\Downloads\\Death Star 1 V1\\untitled.mtl", Color.gray);
