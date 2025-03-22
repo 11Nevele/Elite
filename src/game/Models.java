@@ -130,8 +130,8 @@ public class Models
     static final Face[] Plane = ObjReader.ReadObj(System.getProperty("user.dir") + "\\Model\\Plane.obj",
     System.getProperty("user.dir") + "\\Model\\Plane.mtl", lightRed);
 
-    static final Face[] DeathStar = ObjReader.ReadObj("C:\\Users\\nick.wang\\Downloads\\Death Star 1 V1\\untitled.obj",
-    "C:\\Users\\nick.wang\\Downloads\\Death Star 1 V1\\untitled.mtl", Color.gray);
+    static final Face[] DeathStar = ObjReader.ReadObj(System.getProperty("user.dir") + "\\Model\\untitled.obj",
+    System.getProperty("user.dir") + "\\Model\\untitled.mtl", Color.gray);
 
     //get current project path
 
