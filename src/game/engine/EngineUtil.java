@@ -1,6 +1,9 @@
 package game.engine;
 
+import java.awt.Color;
 import java.util.Random;
+
+import javafx.scene.paint.Color;
 
 public class EngineUtil 
 {
@@ -69,5 +72,24 @@ public class EngineUtil
         v.y = radius * (double)Math.sin(theta) * (double)Math.sin(phi);
         v.z = radius * (double)Math.cos(phi);
         return v;
+    }
+
+    public static Color adjustBrightness(Color color, double factor) 
+    {
+        // Clamp the factor to the range [-1.0, 1.0]
+        factor = Math.max(-1.0, Math.min(1.0, factor));
+
+        // Extract RGB components
+        int red = color.getRed();
+        int green = color.getGreen();
+        int blue = color.getBlue();
+
+        // Adjust each component
+        red = (int) Math.min(255, Math.max(0, red + (red * factor)));
+        green = (int) Math.min(255, Math.max(0, green + (green * factor)));
+        blue = (int) Math.min(255, Math.max(0, blue + (blue * factor)));
+
+        // Return the new color
+        return new Color(red, green, blue);
     }
 }

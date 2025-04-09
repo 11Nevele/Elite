@@ -50,8 +50,8 @@ public class UI
             else
             {
                 //two white line from buttom left to middle and buttom right to middle
-                g.drawLine(WIDTH / 2 - 25 + (int)(spdPercentage * 4), 740 - (int)(spdPercentage * 50), WIDTH/2 - 2, HEIGHT/2);
-                g.drawLine(WIDTH / 2 + 25 - (int)(spdPercentage * 4), 740 - (int)(spdPercentage * 50), WIDTH/2 + 2, HEIGHT/2);
+                g.drawLine(WIDTH / 2 - 25 + (int)(spdPercentage * 4), 800 - (int)(spdPercentage * 50), WIDTH/2 - 2, HEIGHT/2);
+                g.drawLine(WIDTH / 2 + 25 - (int)(spdPercentage * 4), 80 - (int)(spdPercentage * 50), WIDTH/2 + 2, HEIGHT/2);
 
             }
         }

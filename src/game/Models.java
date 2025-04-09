@@ -143,7 +143,7 @@ public class Models
     };
 
     static final Face[] TIE = ObjReader.ReadObj(System.getProperty("user.dir") + "\\Model\\TIE.obj", 
-    System.getProperty("user.dir") + "\\Model\\TIE.mtl", Color.white);
+    System.getProperty("user.dir") + "\\Model\\TIE.mtl", clear);
 
     //a cluster of small triangles red or orange
     static final Face[] explosion = 

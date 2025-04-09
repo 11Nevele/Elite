@@ -42,6 +42,7 @@ public class Camera extends CollidableRenderable
     {
         super.Update(delta);
         
+        fuel -= 1 * delta;
         if(Input.input.keys[KeyEvent.VK_CONTROL])
         {
             fuel = Math.max(0, fuel - fuelBurn * delta);
@@ -118,8 +119,8 @@ public class Camera extends CollidableRenderable
                 }
                 if(c.getTag().equals("asteroid"))
                 {
-                    GameState.gameState.score+=20;
-                    fuel = Math.min(mxFuel, fuel + 10);
+                    GameState.gameState.score+=30;
+                    fuel = Math.min(mxFuel, fuel + 30);
                     Explosion.GenerateExplosion(c.getGameObject().position);
                     GameObject.DestroyObject(c.getGameObject());
                     Audio.explosionAsteroid.play();

@@ -102,7 +102,7 @@ public class Game extends TApplet implements MouseMotionListener, MouseListener
     
 
     final int WIDTH = 1920;
-    final int HEIGHT = 1080;
+    final int HEIGHT = 1200;
     Star sun;
     Star deathStar;
     Renderable []stars;
@@ -110,10 +110,14 @@ public class Game extends TApplet implements MouseMotionListener, MouseListener
     long curTime = 0;
     long preTime = 0;
 
-    Renderable tmp;
     public void init()
     {
+        this.dispose();
+        this.setUndecorated(true);
+        this.setDefaultCloseOperation(this.EXIT_ON_CLOSE);
+        this.setVisible(true);
         this.setSize(WIDTH, HEIGHT);
+
 
         Audio.ambient = new javafx.scene.media.AudioClip
         (new File(getCodeBase() + "\\Sound\\Ambient.wav").toURI().toString());
@@ -152,7 +156,7 @@ public class Game extends TApplet implements MouseMotionListener, MouseListener
             stars[i].rotation.y = ((double)Math.random() - 0.5f);
             stars[i].rotation.z = ((double)Math.random() - 0.5f);
         }
-        camera = new Camera(new Vector3(7000, 0, 0), new Vector3(0,-90,0));
+        camera = new Camera(new Vector3(5000, 0, 0), new Vector3(0,-90,0));
         camera.tag = "MainCamera";
 
         sun = new Star(new Vector3(), 2, 2, new Vector3(1,0,0), Models.GetSphere(1000));
@@ -199,8 +203,10 @@ public class Game extends TApplet implements MouseMotionListener, MouseListener
             g.setColor(Color.RED);
             g.setFont(new Font("Arial", Font.BOLD, 48));
             g.drawString("You Crashed", WIDTH/2 - 150, HEIGHT/2 - 100);
+            g.setFont(new Font("Arial", Font.BOLD, 24));
+            g.drawString("press space to restart", WIDTH/2 - 150, HEIGHT/2);
             repaint();
-            if(Input.input.keys[KeyEvent.VK_SPACE])
+            if(Input.input.keyPressed[KeyEvent.VK_SPACE])
             {
                 GameState.gameState.restartGame = true;
             }
@@ -212,8 +218,10 @@ public class Game extends TApplet implements MouseMotionListener, MouseListener
             g.setColor(Color.RED);
             g.setFont(new Font("Arial", Font.BOLD, 48));
             g.drawString("Out of Fuel", WIDTH/2 - 150, HEIGHT/2 -100);
+            g.setFont(new Font("Arial", Font.BOLD, 24));
+            g.drawString("press space to restart", WIDTH/2 - 150, HEIGHT/2);
             repaint();
-            if(Input.input.keys[KeyEvent.VK_SPACE])
+            if(Input.input.keyPressed[KeyEvent.VK_SPACE])
                 GameState.gameState.restartGame = true;
             return;
         }

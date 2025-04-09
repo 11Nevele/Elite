@@ -82,9 +82,10 @@ public class Renderer
         for(int i = 0; i < tri.vertex.length; i++)
         {
             Vector2 v = project(tri.vertex[i], baseScale - spdPercentage * speedScale);
-            x[i] = (int)v.x;
-            y[i] = (int)v.y;
+            x[i] = (int)Math.round(v.x);
+            y[i] = (int)Math.round(v.y);
         }
+        
         g.setColor(tri.fill);
         g.fillPolygon(x, y, tri.vertex.length);
         for(int i = 0; i < tri.vertex.length - 1; i++)
@@ -105,6 +106,16 @@ public class Renderer
         ArrayList<Face> visibleTriangles = new ArrayList<>(); 
         for(Face tri : triangleList)
         {
+            Vector3 v1 = tri.vertex[1].minus(tri.vertex[0]);
+            Vector3 v2 = tri.vertex[2].minus(tri.vertex[0]);
+            Vector3 normal = v1.cross(v2);
+            Vector3 camRay = new Vector3().minus(tri.vertex[0]);
+
+            double rad = Math.acos(normal.dot(camRay) / (normal.magnitude() * camRay.magnitude()));
+            if(!tri.fill.equals(new Color(255,0,0)))
+            {
+                tri.fill = EngineUtil.adjustBrightness(tri.fill, Math.cos(rad) * 0.7);
+            }
             for(int i = 0 ; i < tri.vertex.length; i++)
             {
                 tri.vertex[i] = tri.vertex[i].plus(new Vector3(-curCameraPos.x, -curCameraPos.y, -curCameraPos.z));
@@ -115,10 +126,10 @@ public class Renderer
                 continue;
             }
             //check if the triangle is facing the camera
-            Vector3 v1 = tri.vertex[1].minus(tri.vertex[0]);
-            Vector3 v2 = tri.vertex[2].minus(tri.vertex[0]);
-            Vector3 normal = v1.cross(v2);
-            Vector3 camRay = tri.vertex[0];
+            v1 = tri.vertex[1].minus(tri.vertex[0]);
+            v2 = tri.vertex[2].minus(tri.vertex[0]);
+            normal = v1.cross(v2);
+            camRay = tri.vertex[0];
             if(normal.dot(camRay) >= 0)
             {
                 continue;

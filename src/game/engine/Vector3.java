@@ -47,6 +47,10 @@ public class Vector3
     {
         return (double)Math.sqrt((x-v.x)*(x-v.x) + (y-v.y)*(y-v.y) + (z-v.z)*(z-v.z));
     }
+    public double magnitude()
+    {
+        return (double)Math.sqrt(x*x + y*y + z*z);
+    }
 
     
 }
