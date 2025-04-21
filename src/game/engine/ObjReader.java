@@ -5,8 +5,20 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+/**
+ * Utility class for loading 3D models from Wavefront OBJ files.
+ * Can also read materials from MTL files.
+ */
 public class ObjReader 
 {
+    /**
+     * Reads a Wavefront OBJ file and returns an array of Face objects
+     * @param path Path to the OBJ file
+     * @param texturePath Path to the MTL file (can be null)
+     * @param lineColor Default color for edges
+     * @return Array of Face objects representing the 3D model
+     */
     public static Face[] ReadObj(String path, String texturePath, Color lineColor)
     {
         //read the obj file
@@ -15,6 +27,8 @@ public class ObjReader
         //hashamp key name, value color
         HashMap<String, Color> colors = new HashMap<>();
         String currentMaterialName = "";
+        
+        // Load material definitions if texture path is provided
         if(texturePath != null)
         {
             try(BufferedReader br = new BufferedReader(new FileReader(texturePath)))
@@ -31,7 +45,7 @@ public class ObjReader
                         // Create a new material
                         currentMaterialName = tokens[1];
                     } else if (tokens[0].equals("Ka") && currentMaterialName != "") {
-
+                        // Ambient color (Ka) - not used currently
                     } else if (tokens[0].equals("Kd") && currentMaterialName != "") {
                         // Diffuse color (Kd)
                         colors.put(currentMaterialName, new Color(
@@ -40,11 +54,11 @@ public class ObjReader
                             (Float.parseFloat(tokens[3]))
                         ));
                     } else if (tokens[0].equals("Ks") && currentMaterialName != "") {
-                    
+                        // Specular color (Ks) - not used currently
                     } else if (tokens[0].equals("Ns") && currentMaterialName != "") {
-                        // Shininess (Ns)
+                        // Shininess (Ns) - not used currently
                     } else if (tokens[0].equals("map_Kd") && currentMaterialName != "") {
-                        // Diffuse texture map (map_Kd)
+                        // Diffuse texture map (map_Kd) - not used currently
                     }
                 }
             }
@@ -53,14 +67,16 @@ public class ObjReader
             }
         }
         
-        
+        // Default color if no material is specified
         Color curColor = Color.gray;
+        
+        // Read the OBJ file
         try (BufferedReader br = new BufferedReader(new FileReader(path)))
         {
             String line;
             while ((line = br.readLine()) != null) 
             {
-            String[] tokens = line.trim().split("\\s+");
+                String[] tokens = line.trim().split("\\s+");
                 if (tokens.length == 0) continue;
 
                 switch (tokens[0]) 
@@ -74,10 +90,10 @@ public class ObjReader
                         
                         break;
 
-                    case "vt": // Texture coordinate
+                    case "vt": // Texture coordinate - not used currently
                         break;
 
-                    case "vn": // Normal
+                    case "vn": // Normal - not used currently
                         break;
 
                     case "f": // Face
@@ -88,7 +104,7 @@ public class ObjReader
                         }
                         model.add(new Face(faces, lineColor, curColor));
                         break;
-                    case "usemtl":
+                    case "usemtl": // Use material
                         curColor = colors.get(tokens[1]);
                         break;
                 }
@@ -101,5 +117,4 @@ public class ObjReader
         }
         return model.toArray(new Face[0]);
     }
-    
 }

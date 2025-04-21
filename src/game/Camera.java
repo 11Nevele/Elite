@@ -13,9 +13,21 @@ import game.engine.Vector2;
 import game.engine.Vector3;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+
+/**
+ * Represents the player's ship/camera.
+ * Handles player movement, view control, shooting, and fuel management.
+ */
 public class Camera extends CollidableRenderable
 {
+    /** Visual model of the player's ship */
     Renderable plane;
+    
+    /**
+     * Creates a new camera at the specified position and orientation
+     * @param pos Initial position
+     * @param rot Initial rotation in Euler angles (degrees)
+     */
     public Camera(Vector3 pos, Vector3 rot)
     {
         super();
@@ -23,26 +35,48 @@ public class Camera extends CollidableRenderable
         rotation = EngineUtil.eulerToQuaternion(rot);
         plane = new Renderable(Models.TIE);
         plane.scale = 1;
-        
     }
+    
+    /** Current speed */
     double curSpd = 0;
+    
+    /** Acceleration rate (units/s²) */
     final double accel = 20;
+    
+    /** Maximum speed */
     final double mxSpd = 100;
 
+    /** Turn rate in degrees per second */
     final double turnSpd = 90;
+    
+    /** Time until next shot can be fired */
     private long nextShootTime = 0;
+    
+    /** Cooldown between shots in seconds */
     private final double shootDelay = 1f; 
     
+    /** Maximum fuel capacity */
     private final double mxFuel = 100;
+    
+    /** Fuel consumption rate per second */
     private final double fuelBurn = 1;
+    
+    /** Current fuel level */
     private double fuel = mxFuel;
 
+    /**
+     * Updates the player's state including movement, shooting, and view control
+     * @param delta Time elapsed since last update in seconds
+     */
     @Override
     public void Update(double delta)
     {
         super.Update(delta);
         
+        // Constant fuel consumption
         fuel -= 1 * delta;
+        
+        // Handle acceleration and deceleration
         if(Input.input.keys[KeyEvent.VK_CONTROL])
         {
             fuel = Math.max(0, fuel - fuelBurn * delta);
@@ -54,12 +88,14 @@ public class Camera extends CollidableRenderable
             curSpd = Math.min(mxSpd, curSpd + accel * delta);
         }
 
+        // Aiming mode slow down factor
         double slowdownScale = 1;
         if(Input.input.keys[KeyEvent.VK_F])
         {
             slowdownScale = 0.3;
         }
 
+        // Mouse control for rotation
         if(Input.input.mouseDown)
         {
             Vector2 mouse = Input.input.mousePos;
@@ -87,7 +123,7 @@ public class Camera extends CollidableRenderable
             }
         }
         
-        
+        // Roll control
         if(Input.input.keys[KeyEvent.VK_E])
         {
             fuel = Math.max(0, fuel - fuelBurn * delta * slowdownScale);
@@ -99,6 +135,7 @@ public class Camera extends CollidableRenderable
             rotation = rotation.multiply(Quaternion.ROLL(-turnSpd * delta * slowdownScale));
         }
         
+        // Weapon firing
         if(Input.input.keyPressed[KeyEvent.VK_SPACE] && System.currentTimeMillis() >= nextShootTime)
         {
             UI.ui.DrawBullet();
@@ -128,27 +165,28 @@ public class Camera extends CollidableRenderable
             }
         }
 
-
+        // Move the player forward
         Vector3 v = EngineUtil.quaternionToDirection(rotation);
         v = v.normalize().multi(curSpd * delta);
         
-        
-        
-
         position = position.plus(v);
-        //keep the relative position and rotation between plane and this still
+        
+        // Update visual ship model position and orientation
         plane.position = position;
         plane.rotation = rotation;
         Vector3 planeDv = new QuaternionT(-20, rotation.rotate(new Vector3(1,0,0)))
         .asQuaternion()
         .rotate(EngineUtil.quaternionToDirection(rotation)).multi(5);
         plane.position = plane.position.plus(planeDv);
+        
+        // Update UI elements
         UI.ui.fuelPercentage = fuel / mxFuel;
         UI.ui.spdPercentage = curSpd / mxSpd;
         Renderer.renderer.spdPercentage = curSpd / mxSpd;
         if(fuel <= 0)
             GameState.gameState.noFuel = true;
 
+        // Handle view switching
         if(Input.input.keys[KeyEvent.VK_A])
         {
             Renderer.renderer.UpdateCamera(position, rotation.multiply(Quaternion.YAW(-90)));
@@ -170,8 +208,8 @@ public class Camera extends CollidableRenderable
             UI.ui.currentView = "Front View";
         }
         
+        // Update UI position display
         UI.ui.curPos = position;
         UI.ui.curRotation = EngineUtil.quaternionToEuler(rotation);
-        
     }
 }

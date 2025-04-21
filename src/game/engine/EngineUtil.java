@@ -5,8 +5,17 @@ import java.util.Random;
 
 import javafx.scene.paint.Color;
 
+/**
+ * Utility class for common 3D graphics and math operations.
+ * Provides methods for quaternion conversions, vector calculations, and color manipulation.
+ */
 public class EngineUtil 
 {
+    /**
+     * Converts Euler angles (in degrees) to a quaternion representation.
+     * @param v Vector3 containing roll (x), pitch (y), and yaw (z) in degrees
+     * @return Equivalent quaternion representation
+     */
     public static Quaternion eulerToQuaternion(Vector3 v) 
     {
         // Convert angles to radians
@@ -31,7 +40,11 @@ public class EngineUtil
         return new Quaternion(qx, qy, qz, w);
     }
 
-    //Quaternion to euler
+    /**
+     * Converts a quaternion to Euler angles (in degrees).
+     * @param q Quaternion to convert
+     * @return Vector3 containing roll, pitch, and yaw angles in degrees
+     */
     public static Vector3 quaternionToEuler(Quaternion q) 
     {
         // Extract sin and cos of pitch angle
@@ -51,8 +64,13 @@ public class EngineUtil
         // Convert angles to degrees
         return new Vector3((double)Math.toDegrees(roll), (double)Math.toDegrees(pitch), (double)Math.toDegrees(yaw));
     }
+    
+    /**
+     * Converts a quaternion to a direction vector.
+     * @param q Quaternion representing orientation
+     * @return Vector3 representing the forward direction
+     */
     public static Vector3 quaternionToDirection(Quaternion q) {
-
         // Apply quaternion rotation to the forward vector (0, 0, 1)
         double vx = 2 * (q.x * q.z + q.w * q.y);
         double vy = 2 * (q.y * q.z - q.w * q.x);
@@ -60,6 +78,12 @@ public class EngineUtil
 
         return new Vector3(vx, vy, vz);  // Normalized direction
     }
+    
+    /**
+     * Generates a random point on a sphere with given radius.
+     * @param radius Radius of the sphere
+     * @return Random point on the sphere surface
+     */
     public static Vector3 RandomOnSphere(double radius)
     {
         Vector3 v = new Vector3();
@@ -74,6 +98,12 @@ public class EngineUtil
         return v;
     }
 
+    /**
+     * Adjusts the brightness of a color.
+     * @param color Original color
+     * @param factor Brightness adjustment factor (-1.0 to 1.0)
+     * @return New color with adjusted brightness
+     */
     public static Color adjustBrightness(Color color, double factor) 
     {
         // Clamp the factor to the range [-1.0, 1.0]

@@ -4,22 +4,48 @@ import game.engine.Face;
 import game.engine.ObjReader;
 import game.engine.Vector3;
 import java.awt.Color;
+
+/**
+ * Contains all 3D models and predefined colors used in the game.
+ * Models include both procedurally generated shapes and those loaded from OBJ files.
+ */
 public class Models 
 {
     //define common colors
+    /** Pure red color */
     public final static Color red = new Color(255, 0, 0);
+    
+    /** Light red color */
     public final static Color lightRed = new Color(255, 180, 180);
+    
+    /** Pure green color */
     public final static Color green = new Color(0, 255, 0);
+    
+    /** Pure blue color */
     public final static Color blue = new Color(0, 0, 255);
+    
+    /** Yellow color */
     public final static Color yellow = new Color(255, 255, 0);
+    
+    /** Light yellow color */
     public final static Color lightYellow = new Color(255, 255, 180);
+    
+    /** Cyan color */
     public final static Color cyan = new Color(180, 255, 255);
+    
+    /** Magenta color */
     public final static Color magenta = new Color(255, 0, 255);
+    
+    /** White color */
     public final static Color white = new Color(255, 255, 255);
+    
+    /** Black color */
     public final static Color black = new Color(0, 0, 0);
+    
+    /** Transparent color */
     public final static Color clear = new Color(0,0,0,0);
 
-    //length of 100
+    /** Vertices for a cube with side length 100 */
     static final Vector3[] cubeVerteies = 
     {
         new Vector3(-50, -50, -50),
@@ -31,7 +57,8 @@ public class Models
         new Vector3(50, 50, 50),
         new Vector3(50, -50, 50)
     };
-    //all white, triangles are in clockwise order when faced from outside
+    
+    /** Cube model made of 12 triangular faces */
     static final Face []cube =
     {
         new Face(cubeVerteies[0], cubeVerteies[2], cubeVerteies[1], clear, red, red, black),
@@ -48,19 +75,23 @@ public class Models
         new Face(cubeVerteies[4], cubeVerteies[6], cubeVerteies[7], clear, red, red, black)
     };
 
+    /** Simple star model */
     static final Face[] star = {
         new Face(new Vector3[]{new Vector3(-500, 0, 0), new Vector3(0,866,0), new Vector3(500, 0, 0)}, white, white),
         new Face(new Vector3[]{new Vector3(-500, 0, 0), new Vector3(0,866,0), new Vector3(500, 0, 0)}, white, white)
     };
 
-
+    /**
+     * Generates a sphere model with given radius
+     * @param radius Radius of the sphere
+     * @return Array of faces comprising the sphere
+     */
     static final Face[] GetSphere(double radius)
     {
         //20 rings, each ring 20 points
         Face[] res = new Face[20 * 20 * 2];
         for(int i = 0; i < 20; i++)
         {
-
             for(int j = 0; j < 20; j++)
             {
                 double theta = 2 * (double)Math.PI * i / 20;
@@ -106,8 +137,7 @@ public class Models
         return res;
     }
 
-
-    //piramid base 10 * 10, height 20
+    /** Vertices for a pyramid with 10x10 base and height 20 */
     static final Vector3[] pv =
     {
         new Vector3(-5, -5, 10),
@@ -116,6 +146,8 @@ public class Models
         new Vector3(5, -5, 10),
         new Vector3(0, 0, 30)
     };
+    
+    /** Pyramid model made of 6 triangular faces */
     static final Face[] pyramid =
     {
         new Face(pv[0], pv[1], pv[4], red),
@@ -126,15 +158,15 @@ public class Models
         new Face(pv[0], pv[3], pv[2], red)
     };
 
-
+    /** Plane model loaded from OBJ file */
     static final Face[] Plane = ObjReader.ReadObj(System.getProperty("user.dir") + "\\Model\\Plane.obj",
     System.getProperty("user.dir") + "\\Model\\Plane.mtl", lightRed);
 
+    /** Death star model loaded from OBJ file */
     static final Face[] DeathStar = ObjReader.ReadObj(System.getProperty("user.dir") + "\\Model\\untitled.obj",
     System.getProperty("user.dir") + "\\Model\\untitled.mtl", Color.gray);
 
-    //get current project path
-
+    /** Array of asteroid models loaded from OBJ files */
     static final Face[][] Astroids = 
     {
         ObjReader.ReadObj(System.getProperty("user.dir") + "\\Model\\asteroids0.obj", null, lightYellow),
@@ -142,16 +174,14 @@ public class Models
         //ObjReader.ReadObj(System.getProperty("user.dir") + "\\Model\\asteroids2.obj", null, Color.yellow),
     };
 
+    /** TIE Fighter model loaded from OBJ file */
     static final Face[] TIE = ObjReader.ReadObj(System.getProperty("user.dir") + "\\Model\\TIE.obj", 
     System.getProperty("user.dir") + "\\Model\\TIE.mtl", clear);
 
-    //a cluster of small triangles red or orange
+    /** Simple explosion effect made of triangles */
     static final Face[] explosion = 
     {
         new Face(new Vector3[]{new Vector3(0, 0, 0), new Vector3(1, 0, 0), new Vector3(0, 1, 0)}),
         new Face(new Vector3[]{new Vector3(0, 0, 0), new Vector3(0, 1, 0), new Vector3(1, 0, 0)})
-
     };
-
-    
 }

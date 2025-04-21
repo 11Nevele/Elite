@@ -10,8 +10,16 @@ import game.engine.Renderer;
 import game.engine.Vector3;
 import java.util.Random;
 
+/**
+ * Represents an enemy ship in the game.
+ * Enemies move with random direction changes and can be destroyed by the player.
+ */
 public class Enemy extends CollidableRenderable
 {
+    /**
+     * Creates a new enemy with the given model
+     * @param newModel 3D model for the enemy
+     */
     public Enemy(Face[] newModel) 
     {
         super(newModel);
@@ -20,10 +28,24 @@ public class Enemy extends CollidableRenderable
         boundingRadius = 3;
         this.tag = "enemy";
     }
+    
+    /** Movement speed */
     final double spd = 80;
+    
+    /** Turning speed in degrees per second */
     final double turnSpd = 70;
+    
+    /** Current rotation velocity */
     Quaternion rotationVelocity = new Quaternion();
+    
+    /** Time for next direction change */
     long nextTime = 0;
+    
+    /**
+     * Generates a random rotation quaternion
+     * @param radius Maximum rotation angle
+     * @return Random rotation as a quaternion
+     */
     public Quaternion Rand(double radius)
     {
         Vector3 v = new Vector3();
@@ -37,6 +59,11 @@ public class Enemy extends CollidableRenderable
         v.z = radius * (double)Math.cos(phi);
         return new QuaternionT((double)Math.random() * turnSpd, v).asQuaternion();
     }
+    
+    /**
+     * Updates the enemy's position and rotation
+     * @param delta Time elapsed since last update in seconds
+     */
     @Override
     public void Update(double delta)
     {
@@ -69,11 +96,14 @@ public class Enemy extends CollidableRenderable
         position = position.plus(v);
         Renderer.renderer.Render(this);
     }
+    
+    /**
+     * Cleanup when enemy is destroyed
+     */
     @Override
     public void destroy()
     {
         super.destroy();
         AstroidManager.instance.Unrigister(this);
     }
-    
 }

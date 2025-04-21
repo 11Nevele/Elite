@@ -7,34 +7,61 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 
+/**
+ * Handles all user interface elements for the game.
+ * Responsible for drawing HUD elements, status bars, and game messages.
+ */
 public class UI
 {
+    /** Singleton instance */
     public static UI ui;
+    
+    /** Center point of the screen */
     public Vector2 center = new Vector2(1920/2, 1080/2);
+    
+    /** Graphics context for rendering */
     private Graphics g;
+    
+    /** Timer for bullet effect display */
     private long bulletFinishedTime = 0;
+    
+    /** Screen width */
     public final int WIDTH;
+    
+    /** Screen height */
     public final int HEIGHT;
 
+    /** Current fuel level (0.0 to 1.0) */
     public double fuelPercentage = 1;
 
+    /** Current speed level (0.0 to 1.0) */
     public double spdPercentage = 1;
 
+    /** Text showing the current view direction */
     public String currentView = "Front View";
 
+    /** Current player position */
     public Vector3 curPos = new Vector3();
 
+    /** Current player rotation in Euler angles */
     public Vector3 curRotation = new Vector3();
 
+    /**
+     * Constructor for the UI system
+     * @param g Graphics context to render to
+     * @param WIDTH Screen width
+     * @param HEIGHT Screen height
+     */
     public UI(Graphics g, int WIDTH, int HEIGHT)
     {
         this.WIDTH = WIDTH;
         this.HEIGHT = HEIGHT;
-        
-        
-        this .g = g;
+        this.g = g;
     }
     
+    /**
+     * Draws UI elements that only appear in front view
+     */
     private void FrontOnlyUI()
     {
         long curTime = System.currentTimeMillis();
@@ -51,7 +78,7 @@ public class UI
             {
                 //two white line from buttom left to middle and buttom right to middle
                 g.drawLine(WIDTH / 2 - 25 + (int)(spdPercentage * 4), 800 - (int)(spdPercentage * 50), WIDTH/2 - 2, HEIGHT/2);
-                g.drawLine(WIDTH / 2 + 25 - (int)(spdPercentage * 4), 80 - (int)(spdPercentage * 50), WIDTH/2 + 2, HEIGHT/2);
+                g.drawLine(WIDTH / 2 + 25 - (int)(spdPercentage * 4), 800 - (int)(spdPercentage * 50), WIDTH/2 + 2, HEIGHT/2);
 
             }
         }
@@ -63,6 +90,10 @@ public class UI
         g.drawLine(WIDTH/2, HEIGHT/2 + 80, WIDTH/2, HEIGHT/2 + 40);
     }
 
+    /**
+     * Updates and draws all UI elements
+     * @param g Graphics context to render to
+     */
     public void Update(Graphics g)
     {
         this.g = g;
@@ -73,7 +104,6 @@ public class UI
         }
 
         //Current view
-
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.PLAIN, 20));
         g.drawString(currentView, WIDTH/2 - 50, 50);
@@ -135,18 +165,14 @@ public class UI
         g.setFont(new Font("Arial", Font.BOLD, 18));
         g.drawString("Score: " + GameState.gameState.score, UIX + 60, 900);
         g.drawString("Highscore: " + GameState.gameState.highScore, UIX + 20, 930);
-
-
-
     }
 
+    /**
+     * Triggers the bullet firing visualization effect
+     */
     public void DrawBullet()
     {
         bulletFinishedTime = System.currentTimeMillis() + 100;
         g.setColor(Color.WHITE);
-
     }
-
-    
-    
 }

@@ -27,48 +27,88 @@ import javax.swing.WindowConstants;
 import javafx.scene.media.AudioClip;
 import java.io.File;
 
-
+/**
+ * Main game class that initializes and manages the game loop.
+ * Handles setup, input processing, and main update cycle.
+ * Extends TApplet for rendering and input handling.
+ */
 public class Game extends TApplet implements MouseMotionListener, MouseListener
 {
-
+    /**
+     * Handles mouse drag events
+     * @param e MouseEvent containing the event data
+     */
     @Override
     public void mouseDragged(MouseEvent e) 
     {
         Input.input.mousePos = new Vector2(e.getX(), e.getY());
     }
+    
+    /**
+     * Handles mouse movement events
+     * @param e MouseEvent containing the event data
+     */
     @Override
     public void mouseMoved(MouseEvent e)
     {
         Input.input.mousePos = new Vector2(e.getX(), e.getY());
         //System.out.println("Mouse X: " + Input.input.mousePos.x + " Mouse Y: " + Input.input.mousePos.y);
     }
+    
+    /**
+     * Handles mouse click events
+     * @param e MouseEvent containing the event data
+     */
     @Override
     public void mouseClicked(MouseEvent e) 
     {
         
     }
+    
+    /**
+     * Handles mouse enter events
+     * @param e MouseEvent containing the event data
+     */
     @Override
     public void mouseEntered(MouseEvent e) 
     {
         
     }
+    
+    /**
+     * Handles mouse exit events
+     * @param e MouseEvent containing the event data
+     */
     @Override
     public void mouseExited(MouseEvent e) 
     {
         
     }
+    
+    /**
+     * Handles mouse press events
+     * @param e MouseEvent containing the event data
+     */
     @Override
     public void mousePressed(MouseEvent e) 
     {
         Input.input.mouseDown = true;
     }
+    
+    /**
+     * Handles mouse release events
+     * @param e MouseEvent containing the event data
+     */
     @Override
     public void mouseReleased(MouseEvent e) 
     {
         Input.input.mouseDown = false;
     }
 
-
+    /**
+     * Main entry point for the game
+     * @param args Command line arguments (not used)
+     */
     public static void main(String[] args) 
     {
         GameState.gameState.restartGame = true;
@@ -92,24 +132,38 @@ public class Game extends TApplet implements MouseMotionListener, MouseListener
             AstroidManager.instance.Clear();
             GameObject.gameObjects.clear();
             GameObject.removedObjects.clear();
-            
         }
         
         return;
     }
 
-    
-    
-
+    /** Screen width */
     final int WIDTH = 1920;
+    
+    /** Screen height */
     final int HEIGHT = 1200;
+    
+    /** Sun object in the game world */
     Star sun;
+    
+    /** Death Star object in the game world */
     Star deathStar;
+    
+    /** Array of background stars */
     Renderable []stars;
+    
+    /** Player camera */
     Camera camera;
+    
+    /** Current time in milliseconds */
     long curTime = 0;
+    
+    /** Previous update time in milliseconds */
     long preTime = 0;
 
+    /**
+     * Initializes the game window, resources, and game objects
+     */
     public void init()
     {
         this.dispose();
@@ -118,7 +172,7 @@ public class Game extends TApplet implements MouseMotionListener, MouseListener
         this.setVisible(true);
         this.setSize(WIDTH, HEIGHT);
 
-
+        // Load audio resources
         Audio.ambient = new javafx.scene.media.AudioClip
         (new File(getCodeBase() + "\\Sound\\Ambient.wav").toURI().toString());
         Audio.ambient.setCycleCount(javafx.scene.media.AudioClip.INDEFINITE);
@@ -139,6 +193,7 @@ public class Game extends TApplet implements MouseMotionListener, MouseListener
         this.addMouseListener(this);
         UI.ui = new UI(getGraphics(), WIDTH, HEIGHT);
     
+        // Create background stars
         stars = new Renderable[200];
         for(int i = 0; i < 200; i++)
         {
@@ -156,9 +211,12 @@ public class Game extends TApplet implements MouseMotionListener, MouseListener
             stars[i].rotation.y = ((double)Math.random() - 0.5f);
             stars[i].rotation.z = ((double)Math.random() - 0.5f);
         }
+        
+        // Create player camera
         camera = new Camera(new Vector3(5000, 0, 0), new Vector3(0,-90,0));
         camera.tag = "MainCamera";
 
+        // Create sun and Death Star
         sun = new Star(new Vector3(), 2, 2, new Vector3(1,0,0), Models.GetSphere(1000));
         sun.boundingRadius = 1000;
         sun.tag = "star";
@@ -168,11 +226,14 @@ public class Game extends TApplet implements MouseMotionListener, MouseListener
         deathStar.boundingRadius = 200;
         deathStar.tag = "star";
 
-
+        // Initialize renderer
         Renderer.renderer = new Renderer(getScreenBuffer(), WIDTH, HEIGHT);
         System.out.println(curTime);
     }
 
+    /**
+     * Processes keyboard and mouse inputs for the current frame
+     */
     private void UpdateInputs()
     {
         for(int i = 0; i < 256; i++)
@@ -181,14 +242,13 @@ public class Game extends TApplet implements MouseMotionListener, MouseListener
             Input.input.keyPressed[i] = (!Input.input.keys[i] && pressed);
             Input.input.keyReleased[i] = (Input.input.keys[i] && !pressed);
             Input.input.keys[i] = pressed;
-            
         }
-        
     }
     
-    
-
-
+    /**
+     * Main game loop - updates the game state and renders each frame
+     * @param g Graphics context to render to
+     */
     public void movie(Graphics g)
     {
         UpdateInputs();
@@ -198,6 +258,8 @@ public class Game extends TApplet implements MouseMotionListener, MouseListener
             this.dispose();
             return;
         }
+        
+        // Handle game over conditions
         if(GameState.gameState.crashed)
         {
             g.setColor(Color.RED);
@@ -225,7 +287,8 @@ public class Game extends TApplet implements MouseMotionListener, MouseListener
                 GameState.gameState.restartGame = true;
             return;
         }
-        //System.out.println(curTime + " " + preTime);
+        
+        // Clear screen and calculate delta time
         g.setColor(Color.BLACK);
         g.fillRect(0,0,WIDTH,HEIGHT);
         
@@ -239,6 +302,8 @@ public class Game extends TApplet implements MouseMotionListener, MouseListener
         curTime = System.currentTimeMillis();
         double delta = (double)(curTime - preTime) / 1000.0;
         System.out.println(1 /delta);
+        
+        // Update game elements
         AstroidManager.instance.Update(delta);
         GameObject.UpdateAll(delta);
         Renderer.renderer.Draw(g);
