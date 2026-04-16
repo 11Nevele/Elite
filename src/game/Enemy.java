@@ -1,107 +1,73 @@
 package game;
 
-import game.engine.CollidableRenderable;
-import game.engine.EngineUtil;
-import game.engine.Face;
-import game.engine.GameObject;
-import game.engine.Quaternion;
-import game.engine.QuaternionT;
-import game.engine.Vector3;
-import java.util.Random;
+import game.engine.*;
 
 /**
- * Represents an enemy ship in the game.
- * Enemies move with random direction changes and can be destroyed by the player.
+ * An enemy ship (TIE fighter) that chases the player.
+ * Can be destroyed by player bullets and explodes on contact.
  */
 public class Enemy extends CollidableRenderable
 {
-    /**
-     * Creates a new enemy with the given model
-     * @param newModel 3D model for the enemy
-     */
-    public Enemy(Face[] newModel) 
+    private static final double TURN_SPEED = 30;
+    private static final double MOVE_SPEED = 40;
+    private static final double MAX_DISTANCE = 600;
+    private static final String TAG_NAME = "enemy";
+
+    private Quaternion rotationVelocity;
+
+    public Enemy(Face[] model, Vector3 spawnPos)
     {
-        super(newModel);
-        position = EngineUtil.RandomOnSphere(1).multi(1000 + (Math.random() * 4000));
-        this.scale = 0.1;
-        boundingRadius = 3;
-        this.tag = "enemy";
+        super(model);
+        tag = TAG_NAME;
+        position = new Vector3(spawnPos);
+        boundingRadius = 5;
+        scale = 3;
+        rotationVelocity = new Quaternion();
     }
-    
-    /** Movement speed */
-    final double spd = 80;
-    
-    /** Turning speed in degrees per second */
-    final double turnSpd = 70;
-    
-    /** Current rotation velocity */
-    Quaternion rotationVelocity = new Quaternion();
-    
-    /** Time for next direction change */
-    long nextTime = 0;
-    
-    /**
-     * Generates a random rotation quaternion
-     * @param radius Maximum rotation angle
-     * @return Random rotation as a quaternion
-     */
-    public Quaternion Rand(double radius)
-    {
-        Vector3 v = new Vector3();
-        Random random = new Random();
-        double theta = 2 * (double)Math.PI * random.nextDouble(); // Azimuthal angle
-        double cosPhi = 2 * random.nextDouble() - 1; // Uniformly sample cos(phi)
-        double phi = (double)Math.acos(cosPhi); // Compute phi
-        
-        v.x = radius * (double)Math.cos(theta) * (double)Math.sin(phi);
-        v.y = radius * (double)Math.sin(theta) * (double)Math.sin(phi);
-        v.z = radius * (double)Math.cos(phi);
-        return new QuaternionT((double)Math.random() * turnSpd, v).asQuaternion();
-    }
-    
-    /**
-     * Updates the enemy's position and rotation
-     * @param delta Time elapsed since last update in seconds
-     */
+
     @Override
-    public void Update(double delta)
+    public void update(double delta)
     {
-        super.Update(delta);
-        if(this.position.distance(new Vector3()) > 10000)
+        super.update(delta);
+
+        double turnSpd = TURN_SPEED;
+
+        // Randomize turn direction slightly
+        Vector3 randomAxis = EngineUtil.randomOnSphere(1).normalize();
+        Quaternion randomTurn = Quaternion.fromAxisAngle(randomAxis, Math.random() * turnSpd);
+        rotationVelocity = randomTurn;
+
+        // Apply rotation over delta time
+        rotation = rotation.multiply(rotationVelocity.scaleRotation(delta));
+
+        // Move forward
+        Vector3 forward = EngineUtil.quaternionToDirection(rotation);
+        Vector3 vel = forward.multiply(MOVE_SPEED * delta);
+        position = position.plus(vel);
+
+        // Remove if too far
+        if (position.magnitude() > MAX_DISTANCE)
         {
-            GameObject.DestroyObject(this);
+            AsteroidManager.instance.unregister(this);
+            GameObject.destroyObject(this);
         }
-        //gettime
-        if(System.currentTimeMillis() >= nextTime)
+
+        // Check collision with bullet
+        if (CollisionManager.instance.getCollision(getID(), "bullet"))
         {
-            long wait = new Random().nextInt(3000) + 2000;
-            nextTime = System.currentTimeMillis() + wait;
-            rotationVelocity = Rand(turnSpd);
+            Explosion.generateExplosion(position, 15);
+            GameState.gameState.addScore(250);
+            AsteroidManager.instance.unregister(this);
+            GameObject.destroyObject(this);
         }
-        else
+
+        // Check collision with player
+        if (CollisionManager.instance.getCollision(getID(), "player"))
         {
-            //scale velocity down by delta
-            QuaternionT deltaQ = new QuaternionT(rotationVelocity);
-            deltaQ.theta *= delta;
-            rotation = rotation.multiply(deltaQ.asQuaternion());
+            Explosion.generateExplosion(position, 20);
+            GameState.gameState.setCrashed(true);
+            AsteroidManager.instance.unregister(this);
+            GameObject.destroyObject(this);
         }
-        //change the velocity vector to the rotation of the enemy
-        Vector3 v = EngineUtil.quaternionToDirection(rotation);
-        v =v.normalize();
-        v.x *= spd * delta;
-        v.y *= spd * delta;
-        v.z *= spd * delta;
-        
-        position = position.plus(v);
-    }
-    
-    /**
-     * Cleanup when enemy is destroyed
-     */
-    @Override
-    public void destroy()
-    {
-        super.destroy();
-        AstroidManager.instance.Unrigister(this);
     }
 }

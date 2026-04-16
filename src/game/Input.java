@@ -1,28 +1,44 @@
 package game;
 
-import game.engine.Vector2;
-
 /**
- * Handles and stores input state for the game.
- * Keeps track of keyboard and mouse inputs.
+ * Manages keyboard input state.
+ * Tracks which keys are currently pressed.
  */
-public class Input 
+public class Input
 {
-    /** Singleton instance */
     public static Input input = new Input();
-    
-    /** Current mouse position */
-    public Vector2 mousePos = new Vector2();
-    
-    /** Whether mouse button is currently pressed */
-    public boolean mouseDown = false;
-    
-    /** Array of current key states */
+
     public boolean[] keys = new boolean[256];
-    
-    /** Array tracking keys that were just pressed this frame */
-    public boolean[] keyPressed = new boolean[256];
-    
-    /** Array tracking keys that were just released this frame */
-    public boolean[] keyReleased = new boolean[256];
+    private boolean[] prevKeys = new boolean[256];
+
+    public void keyDown(int keyCode)
+    {
+        if (keyCode >= 0 && keyCode < keys.length)
+        {
+            keys[keyCode] = true;
+        }
+    }
+
+    public void keyUp(int keyCode)
+    {
+        if (keyCode >= 0 && keyCode < keys.length)
+        {
+            keys[keyCode] = false;
+        }
+    }
+
+    public void update()
+    {
+        System.arraycopy(keys, 0, prevKeys, 0, keys.length);
+    }
+
+    public boolean isKeyDown(int keyCode)
+    {
+        return keyCode >= 0 && keyCode < keys.length && keys[keyCode];
+    }
+
+    public boolean isKeyPressed(int keyCode)
+    {
+        return keyCode >= 0 && keyCode < keys.length && keys[keyCode] && !prevKeys[keyCode];
+    }
 }

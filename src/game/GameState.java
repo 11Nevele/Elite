@@ -1,27 +1,49 @@
 package game;
 
 /**
- * Manages global game state information.
- * Stores game status, scores, and control flags.
+ * Tracks the current game state: score, fuel, crash status, restart flag.
  */
 public class GameState
 {
-    /** Singleton instance */
     public static GameState gameState = new GameState();
-    
-    /** Whether the player has crashed */
-    public boolean crashed = false;
-    
-    /** Whether the player has run out of fuel */
-    public boolean noFuel = false;
-    
-    /** Highest score achieved in the current session */
-    public int highScore = 0;
-    
-    /** Current player score */
-    public int score = 0;
-    
-    /** Flag to trigger game restart */
-    public boolean restartGame = false;
-}
 
+    private boolean crashed;
+    private boolean noFuel;
+    private int highScore;
+    private int score;
+    private boolean restartGame;
+
+    public GameState()
+    {
+        reset();
+    }
+
+    public void reset()
+    {
+        crashed = false;
+        noFuel = false;
+        score = 0;
+        restartGame = false;
+    }
+
+    public boolean isCrashed() { return crashed; }
+    public void setCrashed(boolean crashed) { this.crashed = crashed; }
+
+    public boolean isNoFuel() { return noFuel; }
+    public void setNoFuel(boolean noFuel) { this.noFuel = noFuel; }
+
+    public int getHighScore() { return highScore; }
+    public void setHighScore(int highScore) { this.highScore = highScore; }
+
+    public int getScore() { return score; }
+    public void setScore(int score) { this.score = score; }
+    public void addScore(int points) { this.score += points; }
+
+    public boolean isRestartGame() { return restartGame; }
+    public void setRestartGame(boolean restartGame) { this.restartGame = restartGame; }
+
+    public boolean isDead()
+    {
+        return crashed || noFuel;
+    }
+}

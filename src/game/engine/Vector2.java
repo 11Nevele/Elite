@@ -5,49 +5,56 @@ package game.engine;
  * Used primarily for screen coordinates after projection.
  */
 public class Vector2 
-{ 
-    /** X coordinate */
-    public double x;
-    
-    /** Y coordinate */
-    public double y;
-    
-    /**
-     * Default constructor - creates a zero vector
-     */
+{
+    private double x;
+    private double y;
+
     public Vector2()
     {
         x = 0;
         y = 0;
     }
-    
-    /**
-     * Constructor with coordinates
-     * @param x X coordinate
-     * @param y Y coordinate
-     */
+
     public Vector2(double x, double y)
     {
         this.x = x;
         this.y = y;
     }
-    
-    /**
-     * Calculates the magnitude (length) of this vector
-     * @return Magnitude of the vector
-     */
+
+    public double getX() { return x; }
+    public double getY() { return y; }
+    public void setX(double x) { this.x = x; }
+    public void setY(double y) { this.y = y; }
+
+    public Vector2 minus(Vector2 v)
+    {
+        return new Vector2(x - v.x, y - v.y);
+    }
+
+    public Vector2 plus(Vector2 v)
+    {
+        return new Vector2(x + v.x, y + v.y);
+    }
+
+    public double dot(Vector2 v)
+    {
+        return x * v.x + y * v.y;
+    }
+
+    public Vector2 multiply(double scale)
+    {
+        return new Vector2(scale * x, scale * y);
+    }
+
     public double magnitude()
     {
-        return (double)Math.sqrt(x*x + y*y);
+        return Math.sqrt(x * x + y * y);
     }
-    
-    /**
-     * Returns a normalized version of this vector
-     * @return Normalized vector with same direction but unit length
-     */
+
     public Vector2 normalize()
     {
         double mag = magnitude();
-        return new Vector2(x/mag, y/mag);
-    }  
+        if (mag == 0) return new Vector2();
+        return new Vector2(x / mag, y / mag);
+    }
 }

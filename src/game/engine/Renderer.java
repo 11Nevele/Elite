@@ -7,219 +7,109 @@ import java.util.ArrayList;
 
 /**
  * Main rendering system that handles 3D projection and drawing.
- * Maintains a list of triangles to be rendered each frame.
+ * Coordinates ProjectionTransform, LightingCalculator, and TriangleRasterizer.
  */
 public class Renderer 
-{ 
-    /** Singleton instance */
+{
     public static Renderer renderer;
-    
-    /** Graphics context to render to */
+
+    private static final double BASE_SCALE = 700;
+    private static final double ZOOM_SCALE = 2500;
+    private static final double SPEED_SCALE = 200;
+
     private Graphics g;
-    
-    /** List of triangles to be rendered in the current frame */
-    ArrayList<Face> triangleList;
-    
-    /** Current camera position */
+    private ArrayList<Face> triangleList;
     private Vector3 curCameraPos;
-    
-    /** Current camera rotation */
     private Quaternion curCameraRot;
-    
-    /** Screen height */
-    private double Height = 300;
-    
-    /** Screen width */
-    private double Width = 400;
-    
-    /** Base scale factor for projection */
-    private double baseScale = 700;
-    
-    /** Speed scale factor for projection */
-    private final double speedScale = 200;
-    
-    /** Speed percentage for zoom effect */
+    private double baseScale = BASE_SCALE;
     public double spdPercentage = 0;
-    
-    /**
-     * Constructor for the renderer
-     * @param g Graphics context to render to
-     * @param width Screen width
-     * @param height Screen height
-     */
+
+    private final ProjectionTransform projection;
+    private final LightingCalculator lighting;
+    private final TriangleRasterizer rasterizer;
+
     public Renderer(Graphics g, double width, double height)
     {
         triangleList = new ArrayList<>();
         this.g = g;
         curCameraPos = new Vector3();
         curCameraRot = new Quaternion();
-        Height = height;
-        Width = width;
+        projection = new ProjectionTransform(width, height);
+        lighting = new LightingCalculator();
+        rasterizer = new TriangleRasterizer(projection);
     }
-    
-    /**
-     * Updates the camera position and orientation
-     * @param pos New camera position
-     * @param rot New camera rotation
-     */
-    public void UpdateCamera(Vector3 pos, Quaternion rot)
+
+    public void updateCamera(Vector3 pos, Quaternion rot)
     {
         curCameraPos = pos;
         curCameraRot = rot;
     }
-    
-    /**
-     * Gets the current projection scale
-     * @return Current scale factor
-     */
+
     public double getScale()
     {
         return baseScale;
     }
-    
-    /**
-     * Adds a renderable object to the render queue
-     * @param obj Renderable object to draw
-     */
-    public void Render(Renderable obj)
+
+    public void render(Renderable obj)
     {
-        for (Face tri : obj.model) 
+        for (Face tri : obj.model)
         {
             Face nTri = new Face(tri);
-
-            for(int i = 0;  i < nTri.vertex.length; ++i)
+            for (int i = 0; i < nTri.vertex.length; ++i)
             {
-                nTri.vertex[i] = nTri.vertex[i].multi(obj.scale);
+                nTri.vertex[i] = nTri.vertex[i].multiply(obj.scale);
                 nTri.vertex[i] = obj.rotation.rotate(nTri.vertex[i]);
                 nTri.vertex[i] = nTri.vertex[i].plus(obj.position);
             }
             triangleList.add(nTri);
         }
     }
-    
-    /**
-     * Projects a 3D point onto the 2D screen
-     * @param point 3D point to project
-     * @param scale Projection scale factor
-     * @return 2D screen coordinates
-     */
-    private Vector2 project(Vector3 point, double scale)
-    {
-        Vector2 projected = new Vector2();
-        if (point.z <= 0) {
-            // Handle the point being behind the camera
-            // For simplicity, we'll set the projected coordinates to a large value
-            // You can adjust this logic based on your specific requirements
-            projected.x = point.x* 100000;
-            projected.y = point.y *100000;
-        } else {
-            projected.x = (double)((point.x * scale) / point.z + Width / 2);
-            projected.y = (double)((point.y * scale) / point.z + Height / 2);
-        }
-        return projected;
-    }
 
-    /**
-     * Draws a single triangle to the screen
-     * @param tri Triangle to draw
-     */
-    
-    private void drawTriangle(Face tri)
+    public void draw(Graphics g)
     {
-        int[] x = new int[tri.vertex.length];
-        int[] y = new int[tri.vertex.length];
-        for(int i = 0; i < tri.vertex.length; i++)
-        {
-            Vector2 v = project(tri.vertex[i], baseScale - spdPercentage * speedScale);
-            x[i] = (int)Math.round(v.x);
-            y[i] = (int)Math.round(v.y);
-        }
-        
-        g.setColor(tri.fill);
-        g.fillPolygon(x, y, tri.vertex.length);
-        for(int i = 0; i < tri.vertex.length - 1; i++)
-        {
-            g.setColor(tri.colors[i]);
-            g.drawLine(x[i], y[i], x[i+1], y[i+1]);
-        }
-        g.setColor(tri.colors[tri.vertex.length - 1]);
-        g.drawLine(x[tri.vertex.length - 1], y[tri.vertex.length - 1], x[0], y[0]);
-    }
-    
-    /**
-     * Performs main drawing operation for the frame
-     * @param g Graphics context to render to
-     */
-    public void Draw(Graphics g)
-    {       
         this.g = g;
-        if(Input.input.keys[KeyEvent.VK_F])
-            baseScale = 2500;
+        if (Input.input.keys[KeyEvent.VK_F])
+            baseScale = ZOOM_SCALE;
         else
-            baseScale = 700;
-            
-        // Filter visible triangles and sort by depth
-        ArrayList<Face> visibleTriangles = new ArrayList<>(); 
-        for(Face tri : triangleList)
-        {
-            // Calculate face normal for backface culling
-            Vector3 v1 = tri.vertex[1].minus(tri.vertex[0]);
-            Vector3 v2 = tri.vertex[2].minus(tri.vertex[0]);
-            Vector3 normal = v1.cross(v2);
-            Vector3 camRay = new Vector3().minus(tri.vertex[0]);
+            baseScale = BASE_SCALE;
 
-            // Calculate lighting angle
-            double rad = Math.acos(normal.dot(camRay) / (normal.magnitude() * camRay.magnitude()));
-            if(!tri.fill.equals(new Color(255,0,0)))
+        ArrayList<Face> visibleTriangles = new ArrayList<>();
+        for (Face tri : triangleList)
+        {
+            // Apply lighting before camera transform
+            lighting.applyLighting(tri, curCameraPos);
+
+            // Transform to camera space
+            for (int i = 0; i < tri.vertex.length; i++)
             {
-                tri.fill = EngineUtil.adjustBrightness(tri.fill, Math.cos(rad) * 0.7);
+                tri.vertex[i] = tri.vertex[i].plus(new Vector3(
+                    -curCameraPos.getX(), -curCameraPos.getY(), -curCameraPos.getZ()));
+                tri.vertex[i] = curCameraRot.conjugate().rotate(tri.vertex[i]);
             }
-            
-            // Transform vertices to camera space
-            for(int i = 0 ; i < tri.vertex.length; i++)
-            {
-                tri.vertex[i] = tri.vertex[i].plus(new Vector3(-curCameraPos.x, -curCameraPos.y, -curCameraPos.z));
-                tri.vertex[i] = curCameraRot.Conjugate().rotate(tri.vertex[i]);
-            }
-            
+
             // Discard triangles behind camera
-            if(tri.vertex[0].z <= 0 && tri.vertex[1].z <= 0 && tri.vertex[2].z <= 0)
+            if (tri.vertex[0].getZ() <= 0 && tri.vertex[1].getZ() <= 0 && tri.vertex[2].getZ() <= 0)
             {
                 continue;
             }
-            
+
             // Backface culling
-            v1 = tri.vertex[1].minus(tri.vertex[0]);
-            v2 = tri.vertex[2].minus(tri.vertex[0]);
-            normal = v1.cross(v2);
-            camRay = tri.vertex[0];
-            if(normal.dot(camRay) >= 0)
+            Vector3 v1 = tri.vertex[1].minus(tri.vertex[0]);
+            Vector3 v2 = tri.vertex[2].minus(tri.vertex[0]);
+            Vector3 normal = v1.cross(v2);
+            Vector3 camRay = tri.vertex[0];
+            if (normal.dot(camRay) >= 0)
             {
                 continue;
             }
             visibleTriangles.add(tri);
         }
-        
-        // Sort triangles by depth (furthest first)
 
-        visibleTriangles.sort((a, b) -> 
+        rasterizer.sortByDepth(visibleTriangles);
+        double scale = baseScale - spdPercentage * SPEED_SCALE;
+        for (Face tri : visibleTriangles)
         {
-            double mxa = -100000, mxb = -100000;
-            for(int i = 0; i < a.vertex.length; i++)
-            {
-                mxa = Math.max(mxa, a.vertex[i].z);
-            }
-            for(int i = 0; i < b.vertex.length; ++i)
-            {
-                mxb = Math.max(mxb, b.vertex[i].z);
-            }
-            return Double.compare(mxb, mxa);
-        });
-        
-
-        for(Face tri : visibleTriangles)
-        {
-            drawTriangle(tri);
+            rasterizer.drawTriangle(g, tri, scale);
         }
         triangleList.clear();
     }

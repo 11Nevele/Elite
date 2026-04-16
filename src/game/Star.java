@@ -1,67 +1,36 @@
 package game;
 
-import game.engine.CollidableRenderable;
-import game.engine.Face;
-import game.engine.QuaternionT;
-import game.engine.Vector3;
+import game.engine.*;
 
 /**
- * Represents a star or planet in the game world.
- * Stars have both self-rotation and orbital movement.
+ * A star object that orbits and rotates, used for background scenery.
  */
-public class Star extends CollidableRenderable
+public class Star extends Renderable
 {
-    /** Time in seconds for a complete self-rotation */
-    public double selfRotationPeriod = 60;
-    
-    /** Time in seconds for a complete orbit around (0,0,0) */
-    public double rotationPeriod = 300;
-    
-    /** Axis of self-rotation */
-    public Vector3 rotationAxis = new Vector3(0,1,0);
-    
-    /** Orbital radius from the center (0,0,0) */
-    public final double orbitRadius;
-    
-    /** Self-rotation velocity in degrees per second */
-    public final double rotationVelocity;
-    
-    /** Orbital velocity in degrees per second */
-    public final double orbitSpeed;
-    
-    /**
-     * Creates a new star with specified parameters
-     * @param position Initial position
-     * @param selfRotationPeriod Time for one complete self-rotation in seconds
-     * @param rotationPeriod Time for one complete orbit in seconds
-     * @param rotationAxis Axis of self-rotation
-     * @param model 3D model for the star
-     */
-    public Star(Vector3 position, double selfRotationPeriod, double rotationPeriod, Vector3 rotationAxis, Face[] model)
+    private static final double ORBIT_SPEED = 0;
+
+    private double rotationVelocity;
+    private Vector3 rotationAxis;
+    private double orbitRadius;
+
+    public Star(Face[] model, double orbitRadius)
     {
         super(model);
-        this.position = position;
-        this.selfRotationPeriod = selfRotationPeriod;
-        this.rotationPeriod = rotationPeriod;
-        this.rotationAxis = rotationAxis;
-        orbitRadius = position.distance(new Vector3());
-        rotationVelocity = 360.0 / selfRotationPeriod;
-        orbitSpeed = 360.0 / rotationPeriod;
+        this.orbitRadius = orbitRadius;
+        rotationVelocity = Math.random() * 50 + 10;
+        rotationAxis = EngineUtil.randomOnSphere(1).normalize();
+        position = EngineUtil.randomOnSphere(orbitRadius);
+        scale = 0.02;
     }
 
-    /**
-     * Updates the star's rotation and orbital position
-     * @param delta Time elapsed since last update in seconds
-     */
     @Override
-    public void Update(double delta)
+    public void update(double delta)
     {
-        super.Update(delta);
-        //self rotation
-        QuaternionT selfRotation = new QuaternionT(rotationVelocity * delta, rotationAxis);
-        rotation = rotation.multiply(selfRotation.asQuaternion());
-        //orbit rotation around(0,0,0)
-        QuaternionT orbitRotation = new QuaternionT(orbitSpeed * delta, new Vector3(0,1,0));
-        position = orbitRotation.asQuaternion().rotate(position);
+        super.update(delta);
+        rotation = rotation.multiply(Quaternion.fromAxisAngle(rotationAxis, rotationVelocity * delta));
+
+        // Orbit around origin
+        Quaternion orbitQ = Quaternion.fromAxisAngle(new Vector3(0, 1, 0), ORBIT_SPEED * delta);
+        position = orbitQ.rotate(position);
     }
 }

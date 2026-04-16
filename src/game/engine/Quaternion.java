@@ -5,67 +5,22 @@ package game.engine;
  * Quaternions provide a more robust way to handle rotations compared to Euler angles.
  */
 public class Quaternion 
-{ 
-    /**
-     * Creates a quaternion for pitch rotation (X axis)
-     * @param theta Rotation angle in degrees
-     * @return Quaternion representing the pitch rotation
-     */
-    public static Quaternion PITCH(double theta)
+{
+    private double x, y, z, w;
+
+    public Quaternion()
     {
-        return new QuaternionT(theta, new Vector3(1,0,0)).asQuaternion();
+        x = 0; y = 0; z = 0; w = 1;
     }
 
-    /**
-     * Creates a quaternion for yaw rotation (Y axis)
-     * @param theta Rotation angle in degrees
-     * @return Quaternion representing the yaw rotation
-     */
-    public static Quaternion YAW(double theta)
+    public Quaternion(double x, double y, double z, double w)
     {
-        return new QuaternionT(theta, new Vector3(0,1,0)).asQuaternion();
-    }
-    
-    /**
-     * Creates a quaternion for roll rotation (Z axis)
-     * @param theta Rotation angle in degrees
-     * @return Quaternion representing the roll rotation
-     */
-    public static Quaternion ROLL(double theta)
-    {
-        return new QuaternionT(theta, new Vector3(0,0,1)).asQuaternion();
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.w = w;
     }
 
-    /** Quaternion components */
-    public double x,y,z,w;
-
-    /**
-     * Default constructor - creates identity quaternion
-     */
-    public Quaternion() 
-    {
-        x = 0f; y = 0f; z = 0f; w = 1f;
-    }
-
-    /**
-     * Constructor with explicit components
-     * @param nx X component
-     * @param ny Y component
-     * @param nz Z component
-     * @param na W component
-     */
-    public Quaternion(double nx,double ny, double nz,double na)
-    {
-        x = nx;
-        y = ny;
-        z = nz;
-        w = na;
-    }
-    
-    /**
-     * Copy constructor
-     * @param q Quaternion to copy
-     */
     public Quaternion(Quaternion q)
     {
         x = q.x;
@@ -74,127 +29,164 @@ public class Quaternion
         w = q.w;
     }
 
-    /**
-     * Multiplies this quaternion by another quaternion
-     * @param other The right-hand quaternion in the multiplication
-     * @return Result of quaternion multiplication
-     */
-    public Quaternion x(Quaternion other)
-    {
-        double nx = w * other.x + x * other.w + y * other.z - z * other.y;
-        double ny = w * other.y - x * other.z + y * other.w + z * other.x;
-        double nz = w * other.z + x * other.y - y * other.x + z * other.w;
-        double na = w * other.w - x * other.x - y * other.y - z * other.z;
-        return new Quaternion(nx,ny,nz,na);
-    }
-    
-    /**
-     * Gets the vector part (x,y,z) of this quaternion
-     * @return Vector3 containing the vector part
-     */
-    public Vector3 asVector3()
-    {
-        return new Vector3(x,y,z);
-    }
-    
-    /**
-     * Gets the conjugate of this quaternion
-     * @return Conjugate quaternion
-     */
-    public Quaternion Conjugate()
-    {
-        return new Quaternion(-x,-y,-z,w);
-    }
-    
-    /**
-     * Creates a quaternion from axis-angle representation
-     * @param axis Rotation axis (should be normalized)
-     * @param angle Rotation angle in degrees
-     * @return Quaternion representing the rotation
-     */
-    public static Quaternion fromAxisAngle(Vector3 axis, double angle) {
-        angle = (double) Math.toRadians(angle); // Convert angle to radians
-        double halfAngle = angle / 2;
-        double sinHalfAngle = (double) Math.sin(halfAngle);
+    public double getX() { return x; }
+    public double getY() { return y; }
+    public double getZ() { return z; }
+    public double getW() { return w; }
+    public void setX(double x) { this.x = x; }
+    public void setY(double y) { this.y = y; }
+    public void setZ(double z) { this.z = z; }
+    public void setW(double w) { this.w = w; }
 
+    /**
+     * Creates a quaternion for pitch rotation (X axis)
+     * @param theta Rotation angle in degrees
+     */
+    public static Quaternion pitch(double theta)
+    {
+        return fromAxisAngle(new Vector3(1, 0, 0), theta);
+    }
+
+    /**
+     * Creates a quaternion for yaw rotation (Y axis)
+     * @param theta Rotation angle in degrees
+     */
+    public static Quaternion yaw(double theta)
+    {
+        return fromAxisAngle(new Vector3(0, 1, 0), theta);
+    }
+
+    /**
+     * Creates a quaternion for roll rotation (Z axis)
+     * @param theta Rotation angle in degrees
+     */
+    public static Quaternion roll(double theta)
+    {
+        return fromAxisAngle(new Vector3(0, 0, 1), theta);
+    }
+
+    /**
+     * Creates a quaternion from axis-angle representation.
+     * @param axis Rotation axis (should be normalized)
+     * @param angleDegrees Rotation angle in degrees
+     */
+    public static Quaternion fromAxisAngle(Vector3 axis, double angleDegrees)
+    {
+        double angleRad = Math.toRadians(angleDegrees);
+        double halfAngle = angleRad / 2;
+        double sinHalf = Math.sin(halfAngle);
         return new Quaternion(
-            axis.x * sinHalfAngle,
-            axis.y * sinHalfAngle,
-            axis.z * sinHalfAngle,
-            (double) Math.cos(halfAngle)
+            axis.getX() * sinHalf,
+            axis.getY() * sinHalf,
+            axis.getZ() * sinHalf,
+            Math.cos(halfAngle)
         );
     }
-    
+
     /**
-     * Creates a quaternion from Euler angles
+     * Creates a quaternion from Euler angles.
      * @param pitch Pitch angle in radians
      * @param yaw Yaw angle in radians
      * @param roll Roll angle in radians
-     * @return Quaternion representing the rotation
      */
-    public static Quaternion fromEuler(double pitch, double yaw, double roll) {
-        double cy = (double) Math.cos(yaw * 0.5);
-        double sy = (double) Math.sin(yaw * 0.5);
-        double cp = (double) Math.cos(pitch * 0.5);
-        double sp = (double) Math.sin(pitch * 0.5);
-        double cr = (double) Math.cos(roll * 0.5);
-        double sr = (double) Math.sin(roll * 0.5);
+    public static Quaternion fromEuler(double pitch, double yaw, double roll)
+    {
+        double cy = Math.cos(yaw * 0.5);
+        double sy = Math.sin(yaw * 0.5);
+        double cp = Math.cos(pitch * 0.5);
+        double sp = Math.sin(pitch * 0.5);
+        double cr = Math.cos(roll * 0.5);
+        double sr = Math.sin(roll * 0.5);
 
-        double w = cr * cp * cy + sr * sp * sy;
-        double x = sr * cp * cy - cr * sp * sy;
-        double y = cr * sp * cy + sr * cp * sy;
-        double z = cr * cp * sy - sr * sp * cy;
-
-        return new Quaternion(x, y, z, w);
+        return new Quaternion(
+            sr * cp * cy - cr * sp * sy,
+            cr * sp * cy + sr * cp * sy,
+            cr * cp * sy - sr * sp * cy,
+            cr * cp * cy + sr * sp * sy
+        );
     }
-    
+
     /**
-     * Converts this quaternion to Euler angles
+     * Multiplies this quaternion by another quaternion.
+     */
+    public Quaternion multiply(Quaternion other)
+    {
+        return new Quaternion(
+            w * other.x + x * other.w + y * other.z - z * other.y,
+            w * other.y - x * other.z + y * other.w + z * other.x,
+            w * other.z + x * other.y - y * other.x + z * other.w,
+            w * other.w - x * other.x - y * other.y - z * other.z
+        );
+    }
+
+    /**
+     * Gets the vector part (x,y,z) of this quaternion.
+     */
+    public Vector3 asVector3()
+    {
+        return new Vector3(x, y, z);
+    }
+
+    /**
+     * Gets the conjugate of this quaternion.
+     */
+    public Quaternion conjugate()
+    {
+        return new Quaternion(-x, -y, -z, w);
+    }
+
+    /**
+     * Converts this quaternion to Euler angles.
      * @return Vector3 containing pitch, yaw, and roll in radians
      */
     public Vector3 asEuler()
     {
-        double pitch = (double)Math.asin(2 * (w * y - z * x));
-        double yaw = (double)Math.atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z));
-        double roll = (double)Math.atan2(2 * (w * x + y * z), 1 - 2 * (x * x + y * y));
+        double pitch = Math.asin(2 * (w * y - z * x));
+        double yaw = Math.atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z));
+        double roll = Math.atan2(2 * (w * x + y * z), 1 - 2 * (x * x + y * y));
         return new Vector3(pitch, yaw, roll);
     }
 
     /**
-     * Rotates a vector by this quaternion
-     * @param v Vector to rotate
-     * @return Rotated vector
+     * Rotates a vector by this quaternion.
      */
-    public Vector3 rotate(Vector3 v) 
+    public Vector3 rotate(Vector3 v)
     {
-        Quaternion q = this;
-        Quaternion vQuat = new Quaternion(v.x, v.y, v.z, 0);
-        Quaternion qConjugate = new Quaternion(-q.x, -q.y, -q.z, q.w);
-
-        Quaternion result = q.multiply(vQuat).multiply(qConjugate);
+        Quaternion vQuat = new Quaternion(v.getX(), v.getY(), v.getZ(), 0);
+        Quaternion qConj = new Quaternion(-x, -y, -z, w);
+        Quaternion result = this.multiply(vQuat).multiply(qConj);
         return new Vector3(result.x, result.y, result.z);
     }
 
     /**
-     * Multiplies this quaternion by another quaternion
-     * @param other The right-hand quaternion in the multiplication
-     * @return Result of quaternion multiplication
+     * Scales the rotation represented by this quaternion by the given factor.
+     * Extracts axis-angle, multiplies angle by factor, and converts back.
+     * Used to apply a fraction of a rotation (e.g. for delta-time scaling).
      */
-    public Quaternion multiply(Quaternion other) {
-        double newW = w * other.w - x * other.x - y * other.y - z * other.z;
-        double newX = w * other.x + x * other.w + y * other.z - z * other.y;
-        double newY = w * other.y - x * other.z + y * other.w + z * other.x;
-        double newZ = w * other.z + x * other.y - y * other.x + z * other.w;
-
-        return new Quaternion(newX, newY, newZ, newW);
+    public Quaternion scaleRotation(double factor)
+    {
+        double theta = Math.acos(Math.max(-1, Math.min(1, w))) * 2;
+        double sinHalf = Math.sin(theta / 2);
+        Vector3 axis;
+        if (sinHalf == 0)
+        {
+            axis = new Vector3(0, 0, 1);
+        }
+        else
+        {
+            axis = asVector3().multiply(1.0 / sinHalf);
+        }
+        // Note: theta is in radians, fromAxisAngle expects degrees
+        return fromAxisAngle(axis, Math.toDegrees(theta) * factor);
     }
-    
+
     /**
-     * Normalizes this quaternion
-     * @return Normalized quaternion
+     * Normalizes this quaternion.
      */
-    public Quaternion normalize() {
-        double magnitude = (double) Math.sqrt(x * x + y * y + z * z + w * w);
-        return new Quaternion(x / magnitude, y / magnitude, z / magnitude, w / magnitude);
+    public Quaternion normalize()
+    {
+        double mag = Math.sqrt(x * x + y * y + z * z + w * w);
+        if (mag == 0) return new Quaternion();
+        return new Quaternion(x / mag, y / mag, z / mag, w / mag);
     }
 }

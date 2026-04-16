@@ -1,315 +1,184 @@
 package game;
 
-import game.engine.GameObject;
-import game.engine.Renderable;
-import game.engine.Collidable;
-import game.engine.CollidableRenderable;
-import game.engine.Face;
-import tapplet.TApplet;
-import game.Models;
-import game.Input;
-import game.engine.CollisionManager;
-import game.engine.EngineUtil;
+import game.engine.*;
 import game.engine.Renderer;
-import game.engine.Vector2;
-import game.engine.Vector3;
-
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.WindowEvent;
-import java.util.Random;
-
-import javax.swing.JFrame;
-import javax.swing.WindowConstants;
-import javafx.scene.media.AudioClip;
-import java.io.File;
+import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import javax.swing.*;
 
 /**
- * Main game class that initializes and manages the game loop.
- * Handles setup, input processing, and main update cycle.
- * Extends TApplet for rendering and input handling.
+ * Main game class. Sets up the window, game loop, and coordinates all systems.
  */
-public class Game extends TApplet implements MouseMotionListener, MouseListener
+public class Game extends JFrame implements Runnable
 {
-    /**
-     * Handles mouse drag events
-     * @param e MouseEvent containing the event data
-     */
-    @Override
-    public void mouseDragged(MouseEvent e) 
-    {
-        Input.input.mousePos = new Vector2(e.getX(), e.getY());
-    }
-    
-    /**
-     * Handles mouse movement events
-     * @param e MouseEvent containing the event data
-     */
-    @Override
-    public void mouseMoved(MouseEvent e)
-    {
-        Input.input.mousePos = new Vector2(e.getX(), e.getY());
-        //System.out.println("Mouse X: " + Input.input.mousePos.x + " Mouse Y: " + Input.input.mousePos.y);
-    }
-    
-    /**
-     * Handles mouse click events
-     * @param e MouseEvent containing the event data
-     */
-    @Override
-    public void mouseClicked(MouseEvent e) 
-    {
-        
-    }
-    
-    /**
-     * Handles mouse enter events
-     * @param e MouseEvent containing the event data
-     */
-    @Override
-    public void mouseEntered(MouseEvent e) 
-    {
-        
-    }
-    
-    /**
-     * Handles mouse exit events
-     * @param e MouseEvent containing the event data
-     */
-    @Override
-    public void mouseExited(MouseEvent e) 
-    {
-        
-    }
-    
-    /**
-     * Handles mouse press events
-     * @param e MouseEvent containing the event data
-     */
-    @Override
-    public void mousePressed(MouseEvent e) 
-    {
-        Input.input.mouseDown = true;
-    }
-    
-    /**
-     * Handles mouse release events
-     * @param e MouseEvent containing the event data
-     */
-    @Override
-    public void mouseReleased(MouseEvent e) 
-    {
-        Input.input.mouseDown = false;
-    }
+    public static final int WIDTH = 1920;
+    public static final int HEIGHT = 1200;
 
-    /**
-     * Main entry point for the game
-     * @param args Command line arguments (not used)
-     */
-    public static void main(String[] args) 
+    private long lastTime;
+    private Star[] stars;
+    private static final int STAR_COUNT = 200;
+
+    private BufferedImage screenBuffer;
+    private volatile boolean running;
+    private int targetFPS = 60;
+
+    public Game()
     {
-        GameState.gameState.restartGame = true;
-        while(game.GameState.gameState.restartGame == true)
+        setTitle("Elite");
+        setSize(WIDTH, HEIGHT);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setResizable(false);
+        setLocationRelativeTo(null);
+
+        screenBuffer = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_ARGB);
+
+        addKeyListener(new KeyAdapter()
         {
-            GameState.gameState.restartGame = false;
-            Game curGame = new Game();
-            while(curGame.isVisible())
+            @Override
+            public void keyPressed(KeyEvent e)
             {
-                try {
-                    Thread.sleep(100); // Sleep for a short time to avoid busy-waiting
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                Input.input.keyDown(e.getKeyCode());
             }
-            GameState.gameState.highScore = Math.max(GameState.gameState.highScore, GameState.gameState.score);
-            GameState.gameState.score = 0;
-            GameState.gameState.crashed = false;
-            GameState.gameState.noFuel = false;
-            CollisionManager.instance.Clear();
-            AstroidManager.instance.Clear();
-            GameObject.gameObjects.clear();
-            GameObject.removedObjects.clear();
-        }
-        
-        return;
+
+            @Override
+            public void keyReleased(KeyEvent e)
+            {
+                Input.input.keyUp(e.getKeyCode());
+            }
+        });
+
+        init();
+        setVisible(true);
     }
 
-    /** Screen width */
-    final int WIDTH = 1920;
-    
-    /** Screen height */
-    final int HEIGHT = 1200;
-    
-    /** Sun object in the game world */
-    Star sun;
-    
-    /** Death Star object in the game world */
-    Star deathStar;
-    
-    /** Array of background stars */
-    Renderable []stars;
-    
-    /** Player camera */
-    Camera camera;
-    
-    /** Current time in milliseconds */
-    long curTime = 0;
-    
-    /** Previous update time in milliseconds */
-    long preTime = 0;
-
-    /**
-     * Initializes the game window, resources, and game objects
-     */
-    public void init()
+    private void init()
     {
-        this.dispose();
-        this.setUndecorated(true);
-        this.setDefaultCloseOperation(this.EXIT_ON_CLOSE);
-        this.setVisible(true);
-        this.setSize(WIDTH, HEIGHT);
+        // Initialize systems
+        Input.input = new Input();
+        GameState.gameState = new GameState();
+        Models.init();
+        Audio.init();
 
-        // Load audio resources
-        Audio.ambient = new javafx.scene.media.AudioClip
-        (new File(getCodeBase() + "\\Sound\\Ambient.wav").toURI().toString());
-        Audio.ambient.setCycleCount(javafx.scene.media.AudioClip.INDEFINITE);
-        Audio.ambient.play(0.1);
+        // Create renderer
+        Renderer.renderer = new Renderer(screenBuffer.getGraphics(), WIDTH, HEIGHT);
+        CollisionManager.instance = new CollisionManager();
+        AsteroidManager.instance = new AsteroidManager();
+        UI.ui = new UI(WIDTH, HEIGHT);
 
-        Audio.explosionAsteroid = new javafx.scene.media.AudioClip
-        (new File(getCodeBase() + "\\Sound\\explosion01.wav").toURI().toString());
-
-        Audio.explosionShip = new javafx.scene.media.AudioClip
-        (new File(getCodeBase() + "\\Sound\\explosion.wav").toURI().toString());
-
-        Audio.lazer = new javafx.scene.media.AudioClip
-        (new File(getCodeBase() + "\\Sound\\Hyper 7.wav").toURI().toString());
-
-        curTime = System.currentTimeMillis();
-        preTime = System.currentTimeMillis();
-        this.addMouseMotionListener(this);
-        this.addMouseListener(this);
-        UI.ui = new UI(getGraphics(), WIDTH, HEIGHT);
-    
-        // Create background stars
-        stars = new Renderable[200];
-        for(int i = 0; i < 200; i++)
-        {
-            stars[i] = new Renderable();
-            stars[i].model = new Face[2];
-            //random a white blue to white red color
-            Color c = new Color(0,0,0);
-            for(int j = 0; j < 2; j++)
-            {
-                stars[i].model[j] = new Face(Models.star[j]);
-            }
-            stars[i].position = EngineUtil.RandomOnSphere(100000);
-            stars[i].rotation.w = ((double)Math.random() - 0.5f);
-            stars[i].rotation.x = ((double)Math.random() - 0.5f);
-            stars[i].rotation.y = ((double)Math.random() - 0.5f);
-            stars[i].rotation.z = ((double)Math.random() - 0.5f);
-        }
-        
         // Create player camera
-        camera = new Camera(new Vector3(5000, 0, 0), new Vector3(0,-90,0));
-        camera.tag = "MainCamera";
+        new Camera(new Vector3(0, 0, 0), new Quaternion());
 
-        // Create sun and Death Star
-        sun = new Star(new Vector3(), 2, 2, new Vector3(1,0,0), Models.GetSphere(1000));
-        sun.boundingRadius = 1000;
-        sun.tag = "star";
+        // Create background stars
+        stars = new Star[STAR_COUNT];
+        Face[] starModel = ProceduralMeshes.getSphere(
+            1, 4, 4, GameColors.STAR_WHITE, GameColors.STAR_YELLOW);
+        for (int i = 0; i < STAR_COUNT; i++)
+        {
+            stars[i] = new Star(starModel, 800 + Math.random() * 200);
+        }
 
-        deathStar = new Star(new Vector3(10000, 0, 0), 60, 1200, new Vector3(0,1,0), Models.DeathStar);
-        deathStar.scale = 2000;
-        deathStar.boundingRadius = 200;
-        deathStar.tag = "star";
-
-        // Initialize renderer
-        Renderer.renderer = new Renderer(getScreenBuffer(), WIDTH, HEIGHT);
-        System.out.println(curTime);
+        Audio.playAmbient();
+        lastTime = System.nanoTime();
     }
 
-    /**
-     * Processes keyboard and mouse inputs for the current frame
-     */
-    private void UpdateInputs()
+    public void start()
     {
-        for(int i = 0; i < 256; i++)
-        {
-            boolean pressed = this.keyHeld(i);
-            Input.input.keyPressed[i] = (!Input.input.keys[i] && pressed);
-            Input.input.keyReleased[i] = (Input.input.keys[i] && !pressed);
-            Input.input.keys[i] = pressed;
-        }
+        running = true;
+        new Thread(this).start();
     }
-    
-    /**
-     * Main game loop - updates the game state and renders each frame
-     * @param g Graphics context to render to
-     */
-    public void movie(Graphics g)
+
+    public void stop()
     {
-        UpdateInputs();
-        if(GameState.gameState.restartGame)
+        running = false;
+    }
+
+    @Override
+    public void run()
+    {
+        while (running)
         {
-            this.setVisible(false);
-            this.dispose();
-            return;
-        }
-        
-        // Handle game over conditions
-        if(GameState.gameState.crashed)
-        {
-            g.setColor(Color.RED);
-            g.setFont(new Font("Arial", Font.BOLD, 48));
-            g.drawString("You Crashed", WIDTH/2 - 150, HEIGHT/2 - 100);
-            g.setFont(new Font("Arial", Font.BOLD, 24));
-            g.drawString("press space to restart", WIDTH/2 - 150, HEIGHT/2);
-            repaint();
-            if(Input.input.keyPressed[KeyEvent.VK_SPACE])
+            long frameStart = System.nanoTime();
+
+            Graphics bufferGraphics = screenBuffer.getGraphics();
+            gameLoop(bufferGraphics);
+            bufferGraphics.dispose();
+
+            Graphics g = getGraphics();
+            if (g != null)
             {
-                GameState.gameState.restartGame = true;
+                g.drawImage(screenBuffer, 0, 0, null);
+                g.dispose();
             }
-                
-            return;
+
+            long elapsed = System.nanoTime() - frameStart;
+            long targetNanos = 1_000_000_000L / targetFPS;
+            long sleepMillis = (targetNanos - elapsed) / 1_000_000;
+            if (sleepMillis > 0)
+            {
+                try { Thread.sleep(sleepMillis); }
+                catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            }
         }
-        if(GameState.gameState.noFuel)
+    }
+
+    private void gameLoop(Graphics g)
+    {
+        long now = System.nanoTime();
+        double delta = (now - lastTime) / 1_000_000_000.0;
+        lastTime = now;
+
+        // Cap delta to prevent physics issues
+        delta = Math.min(delta, 0.1);
+
+        // Check restart
+        if (GameState.gameState.isRestartGame())
         {
-            g.setColor(Color.RED);
-            g.setFont(new Font("Arial", Font.BOLD, 48));
-            g.drawString("Out of Fuel", WIDTH/2 - 150, HEIGHT/2 -100);
-            g.setFont(new Font("Arial", Font.BOLD, 24));
-            g.drawString("press space to restart", WIDTH/2 - 150, HEIGHT/2);
-            repaint();
-            if(Input.input.keyPressed[KeyEvent.VK_SPACE])
-                GameState.gameState.restartGame = true;
-            return;
+            restartGame();
         }
-        
-        // Clear screen and calculate delta time
+
+        // Update all game objects
+        GameObject.updateAll(delta);
+
+        // Clear screen
         g.setColor(Color.BLACK);
-        g.fillRect(0,0,WIDTH,HEIGHT);
-        
-        if(preTime == 0 || curTime == 0)
+        g.fillRect(0, 0, WIDTH, HEIGHT);
+
+        // Render 3D scene
+        Renderer.renderer.draw(g);
+
+        // Draw UI
+        UI.ui.draw(g);
+    }
+
+    private void restartGame()
+    {
+        // Clear all game objects
+        GameObject.gameObjects.clear();
+        GameObject.removedObjects.clear();
+        GameObject.newObjects.clear();
+
+        // Reset systems
+        GameState.gameState.reset();
+        CollisionManager.instance.clear();
+        AsteroidManager.instance.clear();
+
+        // Recreate player
+        new Camera(new Vector3(0, 0, 0), new Quaternion());
+
+        // Recreate stars
+        Face[] starModel = ProceduralMeshes.getSphere(
+            1, 4, 4, GameColors.STAR_WHITE, GameColors.STAR_YELLOW);
+        for (int i = 0; i < STAR_COUNT; i++)
         {
-            preTime = System.currentTimeMillis();
-            curTime = System.currentTimeMillis();
-            return;
+            stars[i] = new Star(starModel, 800 + Math.random() * 200);
         }
-        preTime = curTime;
-        curTime = System.currentTimeMillis();
-        double delta = (double)(curTime - preTime) / 1000.0;
-        System.out.println(1 /delta);
-        
-        // Update game elements
-        AstroidManager.instance.Update(delta);
-        GameObject.UpdateAll(delta);
-        Renderer.renderer.Draw(g);
-        UI.ui.Update(g);
-        
-        repaint();
+    }
+
+    public static void main(String[] args)
+    {
+        Game game = new Game();
+        game.start();
     }
 }
 

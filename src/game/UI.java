@@ -1,178 +1,173 @@
 package game;
 
-import game.engine.Renderer;
-import game.engine.Vector2;
-import game.engine.Vector3;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics;
+import game.engine.*;
+import java.awt.*;
 
 /**
- * Handles all user interface elements for the game.
- * Responsible for drawing HUD elements, status bars, and game messages.
+ * Handles all HUD/UI rendering: crosshair, fuel bar, speed bar, score, death screen.
  */
 public class UI
 {
-    /** Singleton instance */
     public static UI ui;
-    
-    /** Center point of the screen */
-    public Vector2 center = new Vector2(1920/2, 1080/2);
-    
-    /** Graphics context for rendering */
-    private Graphics g;
-    
-    /** Timer for bullet effect display */
-    private long bulletFinishedTime = 0;
-    
-    /** Screen width */
-    public final int WIDTH;
-    
-    /** Screen height */
-    public final int HEIGHT;
 
-    /** Current fuel level (0.0 to 1.0) */
-    public double fuelPercentage = 1;
+    private static final int CROSSHAIR_SIZE = 10;
+    private static final int CROSSHAIR_GAP = 5;
+    private static final int BAR_WIDTH = 200;
+    private static final int BAR_HEIGHT = 20;
+    private static final int BAR_MARGIN = 20;
+    private static final int SCORE_MARGIN = 20;
 
-    /** Current speed level (0.0 to 1.0) */
-    public double spdPercentage = 1;
+    private final int screenWidth;
+    private final int screenHeight;
+    private final int centerX;
+    private final int centerY;
 
-    /** Text showing the current view direction */
-    public String currentView = "Front View";
-
-    /** Current player position */
-    public Vector3 curPos = new Vector3();
-
-    /** Current player rotation in Euler angles */
-    public Vector3 curRotation = new Vector3();
-
-    /**
-     * Constructor for the UI system
-     * @param g Graphics context to render to
-     * @param WIDTH Screen width
-     * @param HEIGHT Screen height
-     */
-    public UI(Graphics g, int WIDTH, int HEIGHT)
+    public UI(int width, int height)
     {
-        this.WIDTH = WIDTH;
-        this.HEIGHT = HEIGHT;
-        this.g = g;
-    }
-    
-    /**
-     * Draws UI elements that only appear in front view
-     */
-    private void FrontOnlyUI()
-    {
-        long curTime = System.currentTimeMillis();
-        if(curTime <= bulletFinishedTime)
-        {
-            g.setColor(Color.green);
-            if(Renderer.renderer.getScale() > 700)
-            {
-                g.drawLine(WIDTH / 2 - 200, HEIGHT, WIDTH/2 - 2, HEIGHT/2);
-                g.drawLine(WIDTH / 2 + 200, HEIGHT, WIDTH/2 + 2, HEIGHT/2);
-
-            }
-            else
-            {
-                //two white line from buttom left to middle and buttom right to middle
-                g.drawLine(WIDTH / 2 - 25 + (int)(spdPercentage * 4), 800 - (int)(spdPercentage * 50), WIDTH/2 - 2, HEIGHT/2);
-                g.drawLine(WIDTH / 2 + 25 - (int)(spdPercentage * 4), 800 - (int)(spdPercentage * 50), WIDTH/2 + 2, HEIGHT/2);
-
-            }
-        }
-        //aiming line at center of the screen
-        g.setColor(Color.yellow);
-        g.drawLine(WIDTH/2 - 80, HEIGHT/2, WIDTH/2 -40, HEIGHT/2);
-        g.drawLine(WIDTH/2 + 80, HEIGHT/2, WIDTH/2 + 40, HEIGHT/2);
-        g.drawLine(WIDTH/2, HEIGHT/2 - 80, WIDTH/2, HEIGHT/2 - 40);
-        g.drawLine(WIDTH/2, HEIGHT/2 + 80, WIDTH/2, HEIGHT/2 + 40);
+        this.screenWidth = width;
+        this.screenHeight = height;
+        this.centerX = width / 2;
+        this.centerY = height / 2;
     }
 
-    /**
-     * Updates and draws all UI elements
-     * @param g Graphics context to render to
-     */
-    public void Update(Graphics g)
+    public void draw(Graphics g)
     {
-        this.g = g;
-        
-        if(currentView.charAt(0) == 'F')
+        if (GameState.gameState.isDead())
         {
-            FrontOnlyUI();
+            drawDeathScreen(g);
+            return;
         }
 
-        //Current view
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.PLAIN, 20));
-        g.drawString(currentView, WIDTH/2 - 50, 50);
-
-        int UIX = 0, UIY = 0;
-        //UI bar
-        g.setColor(Color.black);
-        g.fillRect(0, UIY, 240, HEIGHT);
-        g.setColor(Color.yellow);
-        g.drawRect(0, UIY, 240, HEIGHT);
-
-        //Instructions
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 12));
-        g.drawString("Shift - Accelerate    Ctrl - Deccelerate", 20, 50);
-        g.drawString("Mouse - Rotate    Q/E - Roll", 20, 70);
-        g.drawString("A/S/D Change View", 20, 90);
-        g.drawString("Space - Shoot", 20, 110);
-        g.drawString("F - Aim", 20, 130);
-
-        //fuel bar
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 12));
-        g.drawString("FUEL", 55, 390);
-        g.drawString(((int)(fuelPercentage * 100)) + "%", 55, 420 + 600);
-        g.fillRect(48, 400 + (int)(600 - 600 * fuelPercentage), 48, (int)(600 * fuelPercentage));
-        g.setColor(Color.yellow);
-        g.drawRect(48, 400, 48, 600);
-
-        
-        //speed bar
-        g.setColor(Color.WHITE);
-        g.drawString("SPEED", 150, 390);
-        g.fillRect(144, 400 + (int)(600 - 600 * spdPercentage), 48, (int)(600 * spdPercentage));
-        g.drawString(((int)(spdPercentage * 100)) + "%", 150, 420 + 600);
-        g.setColor(Color.yellow);
-        g.drawRect(144, 400, 48, 600);
-
-        //right side UI
-        UIX = WIDTH - 240; UIY = 0;
-        g.setColor(Color.black);
-        g.fillRect(UIX, UIY, 240, HEIGHT);
-        g.setColor(Color.yellow);
-        g.drawRect(UIX, UIY, 240, HEIGHT);
-        //Position and Rotation
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 14));
-        g.drawString("Position: ", UIX + 20, 50);
-        g.drawString("X: " + curPos.x, UIX + 40, 80);
-        g.drawString("Y: " + curPos.y, UIX + 40, 110);
-        g.drawString("Z: " + curPos.z, UIX + 40, 140);
-        g.drawString("Rotation: ", UIX + 20, 170);
-        g.drawString("X: " + curRotation.x, UIX + 40, 200);
-        g.drawString("Y: " + curRotation.y, UIX + 40, 230);
-        g.drawString("Z: " + curRotation.z, UIX + 40, 260);
-
-        //Score and Highscore
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 18));
-        g.drawString("Score: " + GameState.gameState.score, UIX + 60, 900);
-        g.drawString("Highscore: " + GameState.gameState.highScore, UIX + 20, 930);
+        drawCrosshair(g);
+        drawFuelBar(g);
+        drawSpeedBar(g);
+        drawScore(g);
     }
 
-    /**
-     * Triggers the bullet firing visualization effect
-     */
-    public void DrawBullet()
+    private void drawCrosshair(Graphics g)
     {
-        bulletFinishedTime = System.currentTimeMillis() + 100;
+        g.setColor(Color.GREEN);
+        // Horizontal lines
+        g.drawLine(centerX - CROSSHAIR_SIZE - CROSSHAIR_GAP, centerY,
+                   centerX - CROSSHAIR_GAP, centerY);
+        g.drawLine(centerX + CROSSHAIR_GAP, centerY,
+                   centerX + CROSSHAIR_SIZE + CROSSHAIR_GAP, centerY);
+        // Vertical lines
+        g.drawLine(centerX, centerY - CROSSHAIR_SIZE - CROSSHAIR_GAP,
+                   centerX, centerY - CROSSHAIR_GAP);
+        g.drawLine(centerX, centerY + CROSSHAIR_GAP,
+                   centerX, centerY + CROSSHAIR_SIZE + CROSSHAIR_GAP);
+    }
+
+    private void drawFuelBar(Graphics g)
+    {
+        if (Camera.instance == null) return;
+
+        double fuelPercent = Camera.instance.getFuel() / Camera.instance.getInitialFuel();
+        fuelPercent = Math.max(0, Math.min(1, fuelPercent));
+
+        int x = BAR_MARGIN;
+        int y = screenHeight - BAR_MARGIN - BAR_HEIGHT;
+
+        // Background
+        g.setColor(Color.DARK_GRAY);
+        g.fillRect(x, y, BAR_WIDTH, BAR_HEIGHT);
+
+        // Fill
+        g.setColor(fuelPercent > 0.25 ? Color.CYAN : Color.RED);
+        g.fillRect(x, y, (int)(BAR_WIDTH * fuelPercent), BAR_HEIGHT);
+
+        // Border
         g.setColor(Color.WHITE);
+        g.drawRect(x, y, BAR_WIDTH, BAR_HEIGHT);
+
+        // Label
+        g.drawString("FUEL", x, y - 5);
+    }
+
+    private void drawSpeedBar(Graphics g)
+    {
+        if (Camera.instance == null) return;
+
+        double speedPercent = Camera.instance.getSpeed() / Camera.instance.getMaxSpeed();
+        speedPercent = Math.max(0, Math.min(1, speedPercent));
+
+        int x = BAR_MARGIN;
+        int y = screenHeight - BAR_MARGIN - BAR_HEIGHT * 2 - 10;
+
+        // Background
+        g.setColor(Color.DARK_GRAY);
+        g.fillRect(x, y, BAR_WIDTH, BAR_HEIGHT);
+
+        // Fill
+        g.setColor(Color.ORANGE);
+        g.fillRect(x, y, (int)(BAR_WIDTH * speedPercent), BAR_HEIGHT);
+
+        // Border
+        g.setColor(Color.WHITE);
+        g.drawRect(x, y, BAR_WIDTH, BAR_HEIGHT);
+
+        // Label
+        g.drawString("SPEED", x, y - 5);
+    }
+
+    private void drawScore(Graphics g)
+    {
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Monospaced", Font.BOLD, 20));
+        String scoreText = "SCORE: " + GameState.gameState.getScore();
+        g.drawString(scoreText, screenWidth - SCORE_MARGIN - 200, SCORE_MARGIN + 20);
+
+        String highScoreText = "HIGH: " + GameState.gameState.getHighScore();
+        g.drawString(highScoreText, screenWidth - SCORE_MARGIN - 200, SCORE_MARGIN + 45);
+    }
+
+    private void drawDeathScreen(Graphics g)
+    {
+        // Semi-transparent overlay
+        g.setColor(new Color(0, 0, 0, 150));
+        g.fillRect(0, 0, screenWidth, screenHeight);
+
+        g.setFont(new Font("Monospaced", Font.BOLD, 48));
+        g.setColor(Color.RED);
+
+        String deathMsg = GameState.gameState.isCrashed() ? "DESTROYED" : "OUT OF FUEL";
+        FontMetrics fm = g.getFontMetrics();
+        int textWidth = fm.stringWidth(deathMsg);
+        g.drawString(deathMsg, centerX - textWidth / 2, centerY - 30);
+
+        g.setFont(new Font("Monospaced", Font.PLAIN, 24));
+        g.setColor(Color.WHITE);
+        String scoreMsg = "Score: " + GameState.gameState.getScore();
+        fm = g.getFontMetrics();
+        textWidth = fm.stringWidth(scoreMsg);
+        g.drawString(scoreMsg, centerX - textWidth / 2, centerY + 20);
+
+        String restartMsg = "Press R to restart";
+        textWidth = fm.stringWidth(restartMsg);
+        g.drawString(restartMsg, centerX - textWidth / 2, centerY + 60);
+
+        // Handle restart input
+        if (Input.input.keys[java.awt.event.KeyEvent.VK_R])
+        {
+            GameState.gameState.setRestartGame(true);
+        }
+    }
+
+    public void drawBullet(Graphics g, Vector3 bulletPos, Quaternion cameraRot, Vector3 cameraPos)
+    {
+        // Project bullet position to screen for HUD indicator
+        Vector3 relative = bulletPos.minus(cameraPos);
+        relative = cameraRot.conjugate().rotate(relative);
+
+        if (relative.getZ() > 0)
+        {
+            double scale = Renderer.renderer.getScale();
+            int sx = (int)(relative.getX() * scale / relative.getZ() + centerX);
+            int sy = (int)(relative.getY() * scale / relative.getZ() + centerY);
+
+            g.setColor(GameColors.LASER_RED);
+            g.fillOval(sx - 2, sy - 2, 4, 4);
+        }
     }
 }
