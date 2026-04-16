@@ -97,7 +97,7 @@ public class EngineUtil
         v.z = radius * (double)Math.cos(phi);
         return v;
     }
-
+ 
     /**
      * Adjusts the brightness of a color.
      * @param color Original color

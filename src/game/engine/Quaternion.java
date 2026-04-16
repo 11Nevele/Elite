@@ -5,7 +5,7 @@ package game.engine;
  * Quaternions provide a more robust way to handle rotations compared to Euler angles.
  */
 public class Quaternion 
-{
+{ 
     /**
      * Creates a quaternion for pitch rotation (X axis)
      * @param theta Rotation angle in degrees

@@ -56,7 +56,7 @@ public class Camera extends CollidableRenderable
     private final double shootDelay = 1f; 
     
     /** Maximum fuel capacity */
-    private final double mxFuel = 100;
+    private final double mxFuel = 150;
     
     /** Fuel consumption rate per second */
     private final double fuelBurn = 1;

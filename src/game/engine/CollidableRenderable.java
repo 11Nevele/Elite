@@ -6,7 +6,7 @@ package game.engine;
  * Objects of this class are automatically registered with the CollisionManager upon creation.
  */
 public class CollidableRenderable extends Renderable implements Collidable
-{
+{ 
     /** The radius of the bounding sphere used for collision detection. */
     public double boundingRadius = 1;
     /** Unique identifier for this object. */

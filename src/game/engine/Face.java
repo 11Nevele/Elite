@@ -4,7 +4,7 @@ import java.awt.*;
 /**
  * Represents a polygon face in 3D space, primarily a triangle.
  * Stores vertex positions and colors for both edges and fill.
- */
+ */ 
 public class Face
 {
     /** Array of 3D vertex positions */

@@ -5,7 +5,7 @@ import java.util.ArrayList;
  * Base class for all game objects in the game world.
  * Provides position, rotation, and lifecycle management.
  * Implements AutoCloseable for resource management.
- */
+ */ 
 public class GameObject implements AutoCloseable
 {
     /** List of all active game objects */
@@ -21,6 +21,7 @@ public class GameObject implements AutoCloseable
      * Updates all game objects and handles object creation/destruction
      * @param delta Time elapsed since last update in seconds
      */
+    
     public static void UpdateAll(double delta)
     {
         for (GameObject go : gameObjects)

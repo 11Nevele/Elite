@@ -10,7 +10,7 @@ import java.util.ArrayList;
  * Maintains a list of triangles to be rendered each frame.
  */
 public class Renderer 
-{
+{ 
     /** Singleton instance */
     public static Renderer renderer;
     
@@ -123,6 +123,7 @@ public class Renderer
      * Draws a single triangle to the screen
      * @param tri Triangle to draw
      */
+    
     private void drawTriangle(Face tri)
     {
         int[] x = new int[tri.vertex.length];
@@ -200,6 +201,7 @@ public class Renderer
         }
         
         // Sort triangles by depth (furthest first)
+
         visibleTriangles.sort((a, b) -> 
         {
             double mxa = -100000, mxb = -100000;
@@ -214,7 +216,7 @@ public class Renderer
             return Double.compare(mxb, mxa);
         });
         
-        // Draw all visible triangles
+
         for(Face tri : visibleTriangles)
         {
             drawTriangle(tri);

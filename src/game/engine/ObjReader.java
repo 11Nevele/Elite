@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-/**
+/** 
  * Utility class for loading 3D models from Wavefront OBJ files.
  * Can also read materials from MTL files.
  */

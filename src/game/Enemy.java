@@ -6,7 +6,6 @@ import game.engine.Face;
 import game.engine.GameObject;
 import game.engine.Quaternion;
 import game.engine.QuaternionT;
-import game.engine.Renderer;
 import game.engine.Vector3;
 import java.util.Random;
 
@@ -94,7 +93,6 @@ public class Enemy extends CollidableRenderable
         v.z *= spd * delta;
         
         position = position.plus(v);
-        Renderer.renderer.Render(this);
     }
     
     /**

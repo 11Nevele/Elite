@@ -14,7 +14,7 @@ public interface Collidable
      */
     boolean Collides(Collidable other);
     
-    /**
+    /***
      * Gets the radius of the bounding sphere used for collision detection.
      * @return The radius of the bounding sphere
      */

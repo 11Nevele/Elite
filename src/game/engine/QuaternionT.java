@@ -5,7 +5,7 @@ package game.engine;
  * Provides conversion to/from standard quaternion representation.
  */
 public class QuaternionT 
-{
+{ 
     /** Rotation angle in degrees */
     public double theta;
     

@@ -5,7 +5,7 @@ package game.engine;
  * Contains a 3D model composed of faces.
  */
 public class Renderable extends GameObject
-{
+{ 
     /** The 3D model data as an array of Face objects */
     public Face []model;
     

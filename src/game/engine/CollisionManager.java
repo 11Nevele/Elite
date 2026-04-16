@@ -3,7 +3,7 @@ package game.engine;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-
+ 
 /**
  * Manages collision detection and tracking between game objects.
  * This singleton class handles registration of collidable objects,

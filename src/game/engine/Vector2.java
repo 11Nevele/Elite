@@ -5,7 +5,7 @@ package game.engine;
  * Used primarily for screen coordinates after projection.
  */
 public class Vector2 
-{
+{ 
     /** X coordinate */
     public double x;
     
