@@ -27,6 +27,11 @@ public class Renderer
     private final ProjectionTransform projection;
     private final LightingCalculator lighting;
     private final TriangleRasterizer rasterizer;
+    private final double screenWidth;
+    private final double screenHeight;
+
+    // Maximum render distance — objects beyond this are culled
+    private static final double MAX_RENDER_DISTANCE = 500;
 
     // Pre-allocated scratch buffers to avoid per-frame allocations
     private Face[] scratchFaces;
@@ -55,6 +60,8 @@ public class Renderer
         triangleList = new ArrayList<>();
         pointList = new ArrayList<>();
         this.g = g;
+        this.screenWidth = width;
+        this.screenHeight = height;
         curCameraPos = new Vector3();
         curCameraRot = new Quaternion();
         projection = new ProjectionTransform(width, height);
@@ -105,6 +112,65 @@ public class Renderer
 
     public void render(Renderable obj)
     {
+        double worldRadius = obj.modelRadius * obj.scale;
+
+        // --- Object-level distance culling ---
+        double dx = obj.position.getX() - curCameraPos.getX();
+        double dy = obj.position.getY() - curCameraPos.getY();
+        double dz = obj.position.getZ() - curCameraPos.getZ();
+        double distSq = dx * dx + dy * dy + dz * dz;
+        double maxDist = MAX_RENDER_DISTANCE + worldRadius;
+        if (distSq > maxDist * maxDist)
+        {
+            return;
+        }
+
+        // --- Object-level frustum culling (bounding sphere in camera space) ---
+        // Transform object center to camera space
+        Quaternion camConj = curCameraRot.conjugate();
+        double cx = dx; // already relative to camera
+        double cy = dy;
+        double cz = dz;
+        // Apply inverse camera rotation inline
+        // Using direct quaternion rotation formula: result = v + 2w*(q×v) + 2*(q×(q×v))
+        double qx = camConj.getX(), qy = camConj.getY(), qz = camConj.getZ(), qw = camConj.getW();
+        double tx = 2 * (qy * cz - qz * cy);
+        double ty = 2 * (qz * cx - qx * cz);
+        double tz = 2 * (qx * cy - qy * cx);
+        double camZ = cz + qw * tz + (qx * ty - qy * tx);
+
+        // If bounding sphere is entirely behind camera, skip
+        if (camZ + worldRadius <= 0)
+        {
+            return;
+        }
+
+        // Frustum check: if bounding sphere is entirely outside the view cone, skip
+        // Only worth checking when object is in front of camera
+        if (camZ - worldRadius > 0)
+        {
+            double camX = cx + qw * tx + (qy * tz - qz * ty);
+            double camY = cy + qw * ty + (qz * tx - qx * tz);
+            double curScale = baseScale - spdPercentage * SPEED_SCALE;
+
+            // Check horizontal: projected center vs screen bounds
+            double projX = (camX * curScale) / (camZ - worldRadius);
+            double halfW = screenWidth / 2 + worldRadius * curScale / (camZ - worldRadius);
+            if (projX > halfW || projX < -halfW)
+            {
+                return;
+            }
+
+            // Check vertical
+            double projY = (camY * curScale) / (camZ - worldRadius);
+            double halfH = screenHeight / 2 + worldRadius * curScale / (camZ - worldRadius);
+            if (projY > halfH || projY < -halfH)
+            {
+                return;
+            }
+        }
+
+        // Object passed culling — process triangles
         for (Face tri : obj.model)
         {
             Face nTri = getScratchFace(tri);

@@ -7,7 +7,7 @@ import game.engine.*;
  */
 public class AsteroidSpawner
 {
-    private static final int MAX_ASTEROIDS = 10;
+    private static final int MAX_ASTEROIDS = 0;
     private static final double SPAWN_DISTANCE = 200;
 
     private int asteroidCount = 0;
