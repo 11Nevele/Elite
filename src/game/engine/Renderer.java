@@ -31,7 +31,7 @@ public class Renderer
     private final double screenHeight;
 
     // Maximum render distance — objects beyond this are culled
-    private static final double MAX_RENDER_DISTANCE = 500;
+    private static final double MAX_RENDER_DISTANCE = 10000;
 
     // Pre-allocated scratch buffers to avoid per-frame allocations
     private Face[] scratchFaces;

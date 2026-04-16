@@ -60,9 +60,9 @@ public class TriangleRasterizer
         for (int i = 0; i < tri.vertex.length - 1; i++)
         {
             g.setColor(tri.colors[i]);
-            g.drawLine(x[i], y[i], x[i + 1], y[i + 1]);
+            //g.drawLine(x[i], y[i], x[i + 1], y[i + 1]);
         }
         g.setColor(tri.colors[tri.vertex.length - 1]);
-        g.drawLine(x[tri.vertex.length - 1], y[tri.vertex.length - 1], x[0], y[0]);
+        //g.drawLine(x[tri.vertex.length - 1], y[tri.vertex.length - 1], x[0], y[0]);
     }
 }

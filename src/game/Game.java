@@ -15,11 +15,16 @@ public class Game extends JFrame implements Runnable
     public static final int WIDTH = 1920;
     public static final int HEIGHT = 1200;
 
+    // 3D scene renders at half resolution, then upscaled
+    public static final int RENDER_WIDTH = WIDTH;
+    public static final int RENDER_HEIGHT = HEIGHT;
+
     private long lastTime;
     private Star[] stars;
     private static final int STAR_COUNT = 200;
 
     private BufferedImage screenBuffer;
+    private BufferedImage renderBuffer;
     private volatile boolean running;
     private int targetFPS = 60;
 
@@ -32,6 +37,7 @@ public class Game extends JFrame implements Runnable
         setLocationRelativeTo(null);
 
         screenBuffer = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_ARGB);
+        renderBuffer = new BufferedImage(RENDER_WIDTH, RENDER_HEIGHT, BufferedImage.TYPE_INT_ARGB);
 
         addKeyListener(new KeyAdapter()
         {
@@ -60,8 +66,8 @@ public class Game extends JFrame implements Runnable
         Models.init();
         Audio.init();
 
-        // Create renderer
-        Renderer.renderer = new Renderer(screenBuffer.getGraphics(), WIDTH, HEIGHT);
+        // Create renderer at reduced resolution
+        Renderer.renderer = new Renderer(renderBuffer.getGraphics(), RENDER_WIDTH, RENDER_HEIGHT);
         CollisionManager.instance = new CollisionManager();
         AsteroidManager.instance = new AsteroidManager();
         UI.ui = new UI(WIDTH, HEIGHT);
@@ -98,9 +104,11 @@ public class Game extends JFrame implements Runnable
         {
             long frameStart = System.nanoTime();
 
-            Graphics bufferGraphics = screenBuffer.getGraphics();
-            gameLoop(bufferGraphics);
-            bufferGraphics.dispose();
+            Graphics renderGraphics = renderBuffer.getGraphics();
+            Graphics screenGraphics = screenBuffer.getGraphics();
+            gameLoop(renderGraphics, screenGraphics);
+            renderGraphics.dispose();
+            screenGraphics.dispose();
 
             Graphics g = getGraphics();
             if (g != null)
@@ -120,7 +128,7 @@ public class Game extends JFrame implements Runnable
         }
     }
 
-    private void gameLoop(Graphics g)
+    private void gameLoop(Graphics renderG, Graphics screenG)
     {
         long frameStart = System.nanoTime();
         long now = System.nanoTime();
@@ -146,23 +154,26 @@ public class Game extends JFrame implements Runnable
         Profiler.instance.setUpdateTime(t1 - t0);
         Profiler.instance.setGameObjectCount(GameObject.gameObjects.size());
 
-        // Clear screen
-        g.setColor(Color.BLACK);
-        g.fillRect(0, 0, WIDTH, HEIGHT);
+        // Clear render buffer (half resolution)
+        renderG.setColor(Color.BLACK);
+        renderG.fillRect(0, 0, RENDER_WIDTH, RENDER_HEIGHT);
 
-        // Render 3D scene
-        Renderer.renderer.draw(g);
+        // Render 3D scene at reduced resolution
+        Renderer.renderer.draw(renderG);
 
-        // Draw UI
+        // Upscale render buffer to full-resolution screen buffer
+        screenG.drawImage(renderBuffer, 0, 0, WIDTH, HEIGHT, null);
+
+        // Draw UI at full resolution on top
         long t2 = System.nanoTime();
-        UI.ui.draw(g);
+        UI.ui.draw(screenG);
         long t3 = System.nanoTime();
         Profiler.instance.setUITime(t3 - t2);
 
-        // Draw profiler overlay
+        // Draw profiler overlay at full resolution
         Profiler.instance.setTotalFrameTime(System.nanoTime() - frameStart);
         Profiler.instance.endFrame();
-        Profiler.instance.draw(g, WIDTH);
+        Profiler.instance.draw(screenG, WIDTH);
     }
 
     private void restartGame()

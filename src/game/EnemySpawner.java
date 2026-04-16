@@ -7,7 +7,7 @@ import game.engine.*;
  */
 public class EnemySpawner
 {
-    private static final int MAX_ENEMIES = 0;
+    private static final int MAX_ENEMIES = 100;
     private static final double SPAWN_DISTANCE = 300;
 
     private int enemyCount = 0;

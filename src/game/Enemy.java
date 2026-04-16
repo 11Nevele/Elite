@@ -10,7 +10,7 @@ public class Enemy extends CollidableRenderable
 {
     private static final double TURN_SPEED = 30;
     private static final double MOVE_SPEED = 40;
-    private static final double MAX_DISTANCE = 600;
+    private static final double MAX_DISTANCE = 10000;
     private static final String TAG_NAME = "enemy";
 
     private Quaternion rotationVelocity;
@@ -48,6 +48,7 @@ public class Enemy extends CollidableRenderable
         // Remove if too far
         if (position.magnitude() > MAX_DISTANCE)
         {
+            System.out.println("Removing distant enemy" + position);
             AsteroidManager.instance.unregister(this);
             GameObject.destroyObject(this);
         }

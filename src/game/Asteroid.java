@@ -9,7 +9,7 @@ import game.engine.*;
 public class Asteroid extends CollidableRenderable
 {
     private static final double SPEED = 5;
-    private static final double MAX_DISTANCE = 500;
+    private static final double MAX_DISTANCE = 10000;
     private static final String TAG_NAME = "asteroid";
 
     private double rotationVelocity;
@@ -39,6 +39,7 @@ public class Asteroid extends CollidableRenderable
         // Remove if too far away
         if (position.magnitude() > MAX_DISTANCE)
         {
+            System.out.println("Removing distant asteroid" + position);
             AsteroidManager.instance.unregister(this);
             GameObject.destroyObject(this);
         }
