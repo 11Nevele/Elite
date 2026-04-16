@@ -73,12 +73,22 @@ public class Renderer
         else
             baseScale = BASE_SCALE;
 
+        int totalTris = triangleList.size();
+
+        // Lighting pass
+        long tLight0 = System.nanoTime();
+        for (Face tri : triangleList)
+        {
+            lighting.applyLighting(tri, curCameraPos);
+        }
+        long tLight1 = System.nanoTime();
+        game.Profiler.instance.setLightingTime(tLight1 - tLight0);
+
+        // Camera transform + culling pass
+        long tCam0 = System.nanoTime();
         ArrayList<Face> visibleTriangles = new ArrayList<>();
         for (Face tri : triangleList)
         {
-            // Apply lighting before camera transform
-            lighting.applyLighting(tri, curCameraPos);
-
             // Transform to camera space
             for (int i = 0; i < tri.vertex.length; i++)
             {
@@ -104,13 +114,29 @@ public class Renderer
             }
             visibleTriangles.add(tri);
         }
+        long tCam1 = System.nanoTime();
+        game.Profiler.instance.setCameraTransformTime(tCam1 - tCam0);
 
+        // Depth sort pass
+        long tSort0 = System.nanoTime();
         rasterizer.sortByDepth(visibleTriangles);
+        long tSort1 = System.nanoTime();
+        game.Profiler.instance.setDepthSortTime(tSort1 - tSort0);
+
+        // Rasterize pass
+        long tRast0 = System.nanoTime();
         double scale = baseScale - spdPercentage * SPEED_SCALE;
         for (Face tri : visibleTriangles)
         {
             rasterizer.drawTriangle(g, tri, scale);
         }
+        long tRast1 = System.nanoTime();
+        game.Profiler.instance.setRasterizeTime(tRast1 - tRast0);
+
+        // Report triangle counts
+        game.Profiler.instance.setTriangleCount(totalTris);
+        game.Profiler.instance.setVisibleTriangleCount(visibleTriangles.size());
+
         triangleList.clear();
     }
 }

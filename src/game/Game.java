@@ -124,12 +124,16 @@ public class Game extends JFrame implements Runnable
 
     private void gameLoop(Graphics g)
     {
+        long frameStart = System.nanoTime();
         long now = System.nanoTime();
         double delta = (now - lastTime) / 1_000_000_000.0;
         lastTime = now;
 
         // Cap delta to prevent physics issues
         delta = Math.min(delta, 0.1);
+
+        // Toggle profiler
+        Profiler.instance.toggleIfPressed(Input.input.isKeyDown(java.awt.event.KeyEvent.VK_F3));
 
         // Check restart
         if (GameState.gameState.isRestartGame())
@@ -138,7 +142,11 @@ public class Game extends JFrame implements Runnable
         }
 
         // Update all game objects
+        long t0 = System.nanoTime();
         GameObject.updateAll(delta);
+        long t1 = System.nanoTime();
+        Profiler.instance.setUpdateTime(t1 - t0);
+        Profiler.instance.setGameObjectCount(GameObject.gameObjects.size());
 
         // Clear screen
         g.setColor(Color.BLACK);
@@ -148,7 +156,15 @@ public class Game extends JFrame implements Runnable
         Renderer.renderer.draw(g);
 
         // Draw UI
+        long t2 = System.nanoTime();
         UI.ui.draw(g);
+        long t3 = System.nanoTime();
+        Profiler.instance.setUITime(t3 - t2);
+
+        // Draw profiler overlay
+        Profiler.instance.setTotalFrameTime(System.nanoTime() - frameStart);
+        Profiler.instance.endFrame();
+        Profiler.instance.draw(g, WIDTH);
     }
 
     private void restartGame()

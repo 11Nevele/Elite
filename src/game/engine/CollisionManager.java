@@ -48,6 +48,7 @@ public class CollisionManager extends GameObject
     public void update(double delta)
     {
         super.update(delta);
+        long t0 = System.nanoTime();
         for (Collidable c : collidables)
         {
             HashSet<String> set = tags.get(c.getID());
@@ -68,6 +69,9 @@ public class CollisionManager extends GameObject
                 }
             }
         }
+        long t1 = System.nanoTime();
+        game.Profiler.instance.setCollisionTime(t1 - t0);
+        game.Profiler.instance.setCollidableCount(collidables.size());
     }
 
     public ArrayList<Collidable> raycast(Vector3 origin, Vector3 direction)
