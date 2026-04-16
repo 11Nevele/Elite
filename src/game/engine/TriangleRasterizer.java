@@ -1,5 +1,6 @@
 package game.engine;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.util.ArrayList;
 
@@ -29,6 +30,15 @@ public class TriangleRasterizer
         });
     }
 
+    private static Color applyBrightness(Color color, double factor)
+    {
+        factor = Math.max(-1.0, Math.min(1.0, factor));
+        int red = (int) Math.min(255, Math.max(0, color.getRed() + (color.getRed() * factor)));
+        int green = (int) Math.min(255, Math.max(0, color.getGreen() + (color.getGreen() * factor)));
+        int blue = (int) Math.min(255, Math.max(0, color.getBlue() + (color.getBlue() * factor)));
+        return new Color(red, green, blue);
+    }
+
     /**
      * Draws a single triangle to the screen.
      */
@@ -43,7 +53,8 @@ public class TriangleRasterizer
             y[i] = (int) Math.round(v.getY());
         }
 
-        g.setColor(tri.fill);
+        Color drawFill = (tri.brightness != 0) ? applyBrightness(tri.fill, tri.brightness) : tri.fill;
+        g.setColor(drawFill);
         g.fillPolygon(x, y, tri.vertex.length);
 
         for (int i = 0; i < tri.vertex.length - 1; i++)

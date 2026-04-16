@@ -11,6 +11,7 @@ public class Face
     public Vector3[] vertex;
     public Color[] colors;
     public Color fill = new Color(0, 0, 0, 0);
+    public double brightness = 0;
 
     public Face()
     {
@@ -89,5 +90,32 @@ public class Face
         vertex = new Vector3[]{ v0, v1, v2 };
         colors = new Color[]{ new Color(0, 0, 0, 0), new Color(0, 0, 0, 0), new Color(0, 0, 0, 0) };
         this.fill = fill;
+    }
+
+    /**
+     * Copies data from another Face into this Face in-place, avoiding allocations.
+     * Vertex data is deep-copied; Color refs are shared (immutable).
+     */
+    public void copyFrom(Face src)
+    {
+        if (vertex.length != src.vertex.length)
+        {
+            vertex = new Vector3[src.vertex.length];
+            colors = new Color[src.vertex.length];
+            for (int i = 0; i < src.vertex.length; i++)
+            {
+                vertex[i] = new Vector3(src.vertex[i]);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < src.vertex.length; i++)
+            {
+                vertex[i].set(src.vertex[i]);
+            }
+        }
+        System.arraycopy(src.colors, 0, colors, 0, src.colors.length);
+        fill = src.fill;
+        brightness = 0;
     }
 }

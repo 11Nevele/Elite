@@ -1,36 +1,34 @@
 package game;
 
 import game.engine.*;
+import java.awt.Color;
 
 /**
- * A star object that orbits and rotates, used for background scenery.
+ * A star object used for background scenery. Rendered as a 2D point for performance.
  */
-public class Star extends Renderable
+public class Star extends GameObject
 {
-    private static final double ORBIT_SPEED = 0;
-
-    private double rotationVelocity;
-    private Vector3 rotationAxis;
     private double orbitRadius;
+    private Color color;
+    private int size;
 
-    public Star(Face[] model, double orbitRadius)
+    public Star(double orbitRadius)
     {
-        super(model);
+        super();
         this.orbitRadius = orbitRadius;
-        rotationVelocity = Math.random() * 50 + 10;
-        rotationAxis = EngineUtil.randomOnSphere(1).normalize();
         position = EngineUtil.randomOnSphere(orbitRadius);
-        scale = 0.02;
+        // Random tint between white and yellow
+        if (Math.random() > 0.5)
+            color = GameColors.STAR_WHITE;
+        else
+            color = GameColors.STAR_YELLOW;
+        size = (Math.random() > 0.7) ? 3 : 2;
     }
 
     @Override
     public void update(double delta)
     {
         super.update(delta);
-        rotation = rotation.multiply(Quaternion.fromAxisAngle(rotationAxis, rotationVelocity * delta));
-
-        // Orbit around origin
-        Quaternion orbitQ = Quaternion.fromAxisAngle(new Vector3(0, 1, 0), ORBIT_SPEED * delta);
-        position = orbitQ.rotate(position);
+        Renderer.renderer.renderPoint(this.position, color, size);
     }
 }

@@ -69,13 +69,11 @@ public class Game extends JFrame implements Runnable
         // Create player camera
         new Camera(new Vector3(0, 0, 0), new Quaternion());
 
-        // Create background stars
+        // Create background stars (2D points, not 3D meshes)
         stars = new Star[STAR_COUNT];
-        Face[] starModel = ProceduralMeshes.getSphere(
-            1, 4, 4, GameColors.STAR_WHITE, GameColors.STAR_YELLOW);
         for (int i = 0; i < STAR_COUNT; i++)
         {
-            stars[i] = new Star(starModel, 800 + Math.random() * 200);
+            stars[i] = new Star(800 + Math.random() * 200);
         }
 
         Audio.playAmbient();
@@ -183,11 +181,9 @@ public class Game extends JFrame implements Runnable
         new Camera(new Vector3(0, 0, 0), new Quaternion());
 
         // Recreate stars
-        Face[] starModel = ProceduralMeshes.getSphere(
-            1, 4, 4, GameColors.STAR_WHITE, GameColors.STAR_YELLOW);
         for (int i = 0; i < STAR_COUNT; i++)
         {
-            stars[i] = new Star(starModel, 800 + Math.random() * 200);
+            stars[i] = new Star(800 + Math.random() * 200);
         }
     }
 

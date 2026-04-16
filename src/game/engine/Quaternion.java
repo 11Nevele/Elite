@@ -152,10 +152,39 @@ public class Quaternion
      */
     public Vector3 rotate(Vector3 v)
     {
-        Quaternion vQuat = new Quaternion(v.getX(), v.getY(), v.getZ(), 0);
-        Quaternion qConj = new Quaternion(-x, -y, -z, w);
-        Quaternion result = this.multiply(vQuat).multiply(qConj);
-        return new Vector3(result.x, result.y, result.z);
+        // Direct rotation formula: result = v + 2w*(q×v) + 2*(q×(q×v))
+        // where q = (x,y,z) component of quaternion
+        double vx = v.getX(), vy = v.getY(), vz = v.getZ();
+
+        // t = 2 * cross(q.xyz, v)
+        double tx = 2 * (y * vz - z * vy);
+        double ty = 2 * (z * vx - x * vz);
+        double tz = 2 * (x * vy - y * vx);
+
+        // result = v + w*t + cross(q.xyz, t)
+        return new Vector3(
+            vx + w * tx + (y * tz - z * ty),
+            vy + w * ty + (z * tx - x * tz),
+            vz + w * tz + (x * ty - y * tx)
+        );
+    }
+
+    /**
+     * Rotates a vector by this quaternion in-place (zero allocations).
+     */
+    public void rotateInPlace(Vector3 v)
+    {
+        double vx = v.getX(), vy = v.getY(), vz = v.getZ();
+
+        double tx = 2 * (y * vz - z * vy);
+        double ty = 2 * (z * vx - x * vz);
+        double tz = 2 * (x * vy - y * vx);
+
+        v.set(
+            vx + w * tx + (y * tz - z * ty),
+            vy + w * ty + (z * tx - x * tz),
+            vz + w * tz + (x * ty - y * tx)
+        );
     }
 
     /**

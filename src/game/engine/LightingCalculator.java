@@ -16,22 +16,30 @@ public class LightingCalculator
      */
     public void applyLighting(Face tri, Vector3 cameraPos)
     {
-        Vector3 v1 = tri.vertex[1].minus(tri.vertex[0]);
-        Vector3 v2 = tri.vertex[2].minus(tri.vertex[0]);
-        Vector3 normal = v1.cross(v2);
-        Vector3 camRay = cameraPos.minus(tri.vertex[0]);
+        if (tri.fill.equals(EMISSIVE_COLOR)) return;
 
-        double normalMag = normal.magnitude();
-        double camRayMag = camRay.magnitude();
-        if (normalMag == 0 || camRayMag == 0) return;
+        double v1x = tri.vertex[1].getX() - tri.vertex[0].getX();
+        double v1y = tri.vertex[1].getY() - tri.vertex[0].getY();
+        double v1z = tri.vertex[1].getZ() - tri.vertex[0].getZ();
+        double v2x = tri.vertex[2].getX() - tri.vertex[0].getX();
+        double v2y = tri.vertex[2].getY() - tri.vertex[0].getY();
+        double v2z = tri.vertex[2].getZ() - tri.vertex[0].getZ();
 
-        double cosAngle = normal.dot(camRay) / (normalMag * camRayMag);
-        cosAngle = Math.max(-1, Math.min(1, cosAngle));
-        double rad = Math.acos(cosAngle);
+        double nx = v1y * v2z - v1z * v2y;
+        double ny = v1z * v2x - v1x * v2z;
+        double nz = v1x * v2y - v1y * v2x;
 
-        if (!tri.fill.equals(EMISSIVE_COLOR))
-        {
-            tri.fill = EngineUtil.adjustBrightness(tri.fill, Math.cos(rad) * LIGHT_INTENSITY);
-        }
+        double crx = cameraPos.getX() - tri.vertex[0].getX();
+        double cry = cameraPos.getY() - tri.vertex[0].getY();
+        double crz = cameraPos.getZ() - tri.vertex[0].getZ();
+
+        double normalMagSq = nx * nx + ny * ny + nz * nz;
+        double camRayMagSq = crx * crx + cry * cry + crz * crz;
+        if (normalMagSq == 0 || camRayMagSq == 0) return;
+
+        double dot = nx * crx + ny * cry + nz * crz;
+        double cosAngle = dot / Math.sqrt(normalMagSq * camRayMagSq);
+
+        tri.brightness = Math.max(-1, Math.min(1, cosAngle)) * LIGHT_INTENSITY;
     }
 }

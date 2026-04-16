@@ -77,4 +77,48 @@ public class Vector3
     {
         return Math.sqrt(x * x + y * y + z * z);
     }
+
+    // === In-place (mutable) operations for hot paths ===
+
+    public void set(Vector3 v)
+    {
+        x = v.x;
+        y = v.y;
+        z = v.z;
+    }
+
+    public void set(double x, double y, double z)
+    {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+
+    public void addInPlace(Vector3 v)
+    {
+        x += v.x;
+        y += v.y;
+        z += v.z;
+    }
+
+    public void addXYZ(double dx, double dy, double dz)
+    {
+        x += dx;
+        y += dy;
+        z += dz;
+    }
+
+    public void subtractInPlace(Vector3 v)
+    {
+        x -= v.x;
+        y -= v.y;
+        z -= v.z;
+    }
+
+    public void multiplyInPlace(double scale)
+    {
+        x *= scale;
+        y *= scale;
+        z *= scale;
+    }
 }

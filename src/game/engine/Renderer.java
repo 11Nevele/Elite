@@ -28,15 +28,45 @@ public class Renderer
     private final LightingCalculator lighting;
     private final TriangleRasterizer rasterizer;
 
+    // Pre-allocated scratch buffers to avoid per-frame allocations
+    private Face[] scratchFaces;
+    private int scratchSize = 0;
+    private static final int INITIAL_SCRATCH_SIZE = 2048;
+
+    // Point rendering list for stars etc.
+    private ArrayList<PointEntry> pointList;
+
+    private static class PointEntry
+    {
+        Vector3 position;
+        Color color;
+        int size;
+
+        PointEntry(Vector3 position, Color color, int size)
+        {
+            this.position = position;
+            this.color = color;
+            this.size = size;
+        }
+    }
+
     public Renderer(Graphics g, double width, double height)
     {
         triangleList = new ArrayList<>();
+        pointList = new ArrayList<>();
         this.g = g;
         curCameraPos = new Vector3();
         curCameraRot = new Quaternion();
         projection = new ProjectionTransform(width, height);
         lighting = new LightingCalculator();
         rasterizer = new TriangleRasterizer(projection);
+
+        // Pre-allocate scratch Face buffer
+        scratchFaces = new Face[INITIAL_SCRATCH_SIZE];
+        for (int i = 0; i < INITIAL_SCRATCH_SIZE; i++)
+        {
+            scratchFaces[i] = new Face();
+        }
     }
 
     public void updateCamera(Vector3 pos, Quaternion rot)
@@ -50,16 +80,39 @@ public class Renderer
         return baseScale;
     }
 
+    private Face getScratchFace(Face src)
+    {
+        if (scratchSize >= scratchFaces.length)
+        {
+            // Grow the scratch buffer
+            Face[] newBuf = new Face[scratchFaces.length * 2];
+            System.arraycopy(scratchFaces, 0, newBuf, 0, scratchFaces.length);
+            for (int i = scratchFaces.length; i < newBuf.length; i++)
+            {
+                newBuf[i] = new Face();
+            }
+            scratchFaces = newBuf;
+        }
+        Face f = scratchFaces[scratchSize++];
+        f.copyFrom(src);
+        return f;
+    }
+
+    public void renderPoint(Vector3 position, Color color, int size)
+    {
+        pointList.add(new PointEntry(position, color, size));
+    }
+
     public void render(Renderable obj)
     {
         for (Face tri : obj.model)
         {
-            Face nTri = new Face(tri);
+            Face nTri = getScratchFace(tri);
             for (int i = 0; i < nTri.vertex.length; ++i)
             {
-                nTri.vertex[i] = nTri.vertex[i].multiply(obj.scale);
-                nTri.vertex[i] = obj.rotation.rotate(nTri.vertex[i]);
-                nTri.vertex[i] = nTri.vertex[i].plus(obj.position);
+                nTri.vertex[i].multiplyInPlace(obj.scale);
+                obj.rotation.rotateInPlace(nTri.vertex[i]);
+                nTri.vertex[i].addInPlace(obj.position);
             }
             triangleList.add(nTri);
         }
@@ -84,6 +137,12 @@ public class Renderer
         long tLight1 = System.nanoTime();
         game.Profiler.instance.setLightingTime(tLight1 - tLight0);
 
+        // Cache camera transform values once per frame
+        double negCamX = -curCameraPos.getX();
+        double negCamY = -curCameraPos.getY();
+        double negCamZ = -curCameraPos.getZ();
+        Quaternion camRotConj = curCameraRot.conjugate();
+
         // Camera transform + culling pass
         long tCam0 = System.nanoTime();
         ArrayList<Face> visibleTriangles = new ArrayList<>();
@@ -92,9 +151,8 @@ public class Renderer
             // Transform to camera space
             for (int i = 0; i < tri.vertex.length; i++)
             {
-                tri.vertex[i] = tri.vertex[i].plus(new Vector3(
-                    -curCameraPos.getX(), -curCameraPos.getY(), -curCameraPos.getZ()));
-                tri.vertex[i] = curCameraRot.conjugate().rotate(tri.vertex[i]);
+                tri.vertex[i].addXYZ(negCamX, negCamY, negCamZ);
+                camRotConj.rotateInPlace(tri.vertex[i]);
             }
 
             // Discard triangles behind camera
@@ -103,12 +161,18 @@ public class Renderer
                 continue;
             }
 
-            // Backface culling
-            Vector3 v1 = tri.vertex[1].minus(tri.vertex[0]);
-            Vector3 v2 = tri.vertex[2].minus(tri.vertex[0]);
-            Vector3 normal = v1.cross(v2);
-            Vector3 camRay = tri.vertex[0];
-            if (normal.dot(camRay) >= 0)
+            // Backface culling (inline to avoid allocations)
+            double e1x = tri.vertex[1].getX() - tri.vertex[0].getX();
+            double e1y = tri.vertex[1].getY() - tri.vertex[0].getY();
+            double e1z = tri.vertex[1].getZ() - tri.vertex[0].getZ();
+            double e2x = tri.vertex[2].getX() - tri.vertex[0].getX();
+            double e2y = tri.vertex[2].getY() - tri.vertex[0].getY();
+            double e2z = tri.vertex[2].getZ() - tri.vertex[0].getZ();
+            double nx = e1y * e2z - e1z * e2y;
+            double ny = e1z * e2x - e1x * e2z;
+            double nz = e1x * e2y - e1y * e2x;
+            double dotCam = nx * tri.vertex[0].getX() + ny * tri.vertex[0].getY() + nz * tri.vertex[0].getZ();
+            if (dotCam >= 0)
             {
                 continue;
             }
@@ -130,6 +194,25 @@ public class Renderer
         {
             rasterizer.drawTriangle(g, tri, scale);
         }
+
+        // Draw points (stars) after triangles
+        for (PointEntry p : pointList)
+        {
+            double px = p.position.getX() + negCamX;
+            double py = p.position.getY() + negCamY;
+            double pz = p.position.getZ() + negCamZ;
+            // Apply camera rotation
+            Vector3 camSpace = camRotConj.rotate(new Vector3(px, py, pz));
+            if (camSpace.getZ() > 0)
+            {
+                Vector2 screen = projection.project(camSpace, scale);
+                g.setColor(p.color);
+                int sx = (int) Math.round(screen.getX());
+                int sy = (int) Math.round(screen.getY());
+                g.fillOval(sx - p.size / 2, sy - p.size / 2, p.size, p.size);
+            }
+        }
+
         long tRast1 = System.nanoTime();
         game.Profiler.instance.setRasterizeTime(tRast1 - tRast0);
 
@@ -138,5 +221,7 @@ public class Renderer
         game.Profiler.instance.setVisibleTriangleCount(visibleTriangles.size());
 
         triangleList.clear();
+        pointList.clear();
+        scratchSize = 0;
     }
 }
