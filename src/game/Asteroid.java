@@ -10,7 +10,6 @@ public class Asteroid extends CollidableRenderable
 {
     private static final double SPEED = 5;
     private static final double MAX_DISTANCE = 10000;
-    private static final String TAG_NAME = "asteroid";
 
     private double rotationVelocity;
     private Vector3 rotationAxis;
@@ -19,7 +18,7 @@ public class Asteroid extends CollidableRenderable
     public Asteroid(Face[] model, Vector3 spawnPos)
     {
         super(model);
-        tag = TAG_NAME;
+        collisionLayer = CollisionLayer.ASTEROID;
         position = new Vector3(spawnPos);
         boundingRadius = 5;
         scale = 3;
@@ -43,9 +42,12 @@ public class Asteroid extends CollidableRenderable
             AsteroidManager.instance.unregister(this);
             GameObject.destroyObject(this);
         }
+    }
 
-        // Check collision with player bullets
-        if (CollisionManager.instance.getCollision(getID(), "bullet"))
+    @Override
+    public void onCollisionEnter(Collidable other)
+    {
+        if (other.getCollisionLayer() == CollisionLayer.BULLET)
         {
             Explosion.generateExplosion(position, 10);
             GameState.gameState.addScore(100);

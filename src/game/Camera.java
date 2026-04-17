@@ -18,7 +18,7 @@ public class Camera extends CollidableRenderable
     {
         super(Models.tieFighter);
         instance = this;
-        tag = "player";
+        collisionLayer = CollisionLayer.PLAYER;
         boundingRadius = 5;
         position = new Vector3(pos);
         rotation = new Quaternion(rot);
@@ -49,10 +49,13 @@ public class Camera extends CollidableRenderable
 
         // Speed percentage for zoom effect
         Renderer.renderer.spdPercentage = movement.getSpeed() / movement.getMaxSpeed();
+    }
 
-        // Check collision with asteroids/enemies
-        if (CollisionManager.instance.getCollision(getID(), "asteroid") ||
-            CollisionManager.instance.getCollision(getID(), "enemy"))
+    @Override
+    public void onCollisionEnter(Collidable other)
+    {
+        int layer = other.getCollisionLayer();
+        if (layer == CollisionLayer.ASTEROID || layer == CollisionLayer.ENEMY)
         {
             if (!GameState.gameState.isDead())
             {

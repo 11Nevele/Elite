@@ -11,14 +11,13 @@ public class Enemy extends CollidableRenderable
     private static final double TURN_SPEED = 30;
     private static final double MOVE_SPEED = 40;
     private static final double MAX_DISTANCE = 10000;
-    private static final String TAG_NAME = "enemy";
 
     private Quaternion rotationVelocity;
 
     public Enemy(Face[] model, Vector3 spawnPos)
     {
         super(model);
-        tag = TAG_NAME;
+        collisionLayer = CollisionLayer.ENEMY;
         position = new Vector3(spawnPos);
         boundingRadius = 5;
         scale = 3;
@@ -52,18 +51,20 @@ public class Enemy extends CollidableRenderable
             AsteroidManager.instance.unregister(this);
             GameObject.destroyObject(this);
         }
+    }
 
-        // Check collision with bullet
-        if (CollisionManager.instance.getCollision(getID(), "bullet"))
+    @Override
+    public void onCollisionEnter(Collidable other)
+    {
+        int layer = other.getCollisionLayer();
+        if (layer == CollisionLayer.BULLET)
         {
             Explosion.generateExplosion(position, 15);
             GameState.gameState.addScore(250);
             AsteroidManager.instance.unregister(this);
             GameObject.destroyObject(this);
         }
-
-        // Check collision with player
-        if (CollisionManager.instance.getCollision(getID(), "player"))
+        else if (layer == CollisionLayer.PLAYER)
         {
             Explosion.generateExplosion(position, 20);
             GameState.gameState.setCrashed(true);

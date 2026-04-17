@@ -13,7 +13,7 @@ public class Bullet extends CollidableRenderable
     public Bullet(Vector3 pos, Vector3 velocity, double lifetime)
     {
         super(Models.bulletModel);
-        tag = "bullet";
+        collisionLayer = CollisionLayer.BULLET;
         position = new Vector3(pos);
         this.velocity = velocity;
         this.lifetime = lifetime;
@@ -32,5 +32,11 @@ public class Bullet extends CollidableRenderable
             return;
         }
         position = position.plus(velocity.multiply(delta));
+    }
+
+    @Override
+    public void onCollisionEnter(Collidable other)
+    {
+        GameObject.destroyObject(this);
     }
 }

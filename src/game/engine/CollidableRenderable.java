@@ -8,7 +8,7 @@ public class CollidableRenderable extends Renderable implements Collidable
 {
     public double boundingRadius = 1;
     private int id = 0;
-    public String tag = "default";
+    public int collisionLayer = CollisionLayer.NONE;
 
     public CollidableRenderable()
     {
@@ -59,15 +59,27 @@ public class CollidableRenderable extends Renderable implements Collidable
     }
 
     @Override
-    public String getTag()
+    public int getCollisionLayer()
     {
-        return tag;
+        return collisionLayer;
     }
 
     @Override
     public GameObject getGameObject()
     {
         return this;
+    }
+
+    @Override
+    public void onCollisionEnter(Collidable other)
+    {
+        // Default no-op. Subclasses override to handle collisions.
+    }
+
+    @Override
+    public void onCollisionExit(Collidable other)
+    {
+        // Default no-op. Subclasses override to handle collision end.
     }
 
     @Override
