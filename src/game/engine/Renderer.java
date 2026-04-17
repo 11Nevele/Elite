@@ -3,6 +3,7 @@ package game.engine;
 import game.Input;
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 /**
@@ -13,15 +14,20 @@ public class Renderer
 {
     public static Renderer renderer;
 
-    private static final double BASE_SCALE = 700;
-    private static final double ZOOM_SCALE = 2500;
-    private static final double SPEED_SCALE = 200;
+    private static final double REF_BASE_SCALE = 700;
+    private static final double REF_ZOOM_SCALE = 2500;
+    private static final double REF_SPEED_SCALE = 200;
+    private static final double REF_WIDTH = 1920;
+
+    private final double BASE_SCALE;
+    private final double ZOOM_SCALE;
+    private final double SPEED_SCALE;
 
     private Graphics g;
     private ArrayList<Face> triangleList;
     private Vector3 curCameraPos;
     private Quaternion curCameraRot;
-    private double baseScale = BASE_SCALE;
+    private double baseScale;
     public double spdPercentage = 0;
 
     private final ProjectionTransform projection;
@@ -55,8 +61,15 @@ public class Renderer
         }
     }
 
-    public Renderer(Graphics g, double width, double height)
+    public Renderer(Graphics g, double width, double height, BufferedImage renderTarget)
     {
+        // Scale projection constants proportionally to render resolution
+        double scaleFactor = width / REF_WIDTH;
+        BASE_SCALE = REF_BASE_SCALE * scaleFactor;
+        ZOOM_SCALE = REF_ZOOM_SCALE * scaleFactor;
+        SPEED_SCALE = REF_SPEED_SCALE * scaleFactor;
+        baseScale = BASE_SCALE;
+
         triangleList = new ArrayList<>();
         pointList = new ArrayList<>();
         this.g = g;
@@ -67,6 +80,7 @@ public class Renderer
         projection = new ProjectionTransform(width, height);
         lighting = new LightingCalculator();
         rasterizer = new TriangleRasterizer(projection);
+        rasterizer.bind(renderTarget);
 
         // Pre-allocate scratch Face buffer
         scratchFaces = new Face[INITIAL_SCRATCH_SIZE];
@@ -247,13 +261,16 @@ public class Renderer
         long tCam1 = System.nanoTime();
         game.Profiler.instance.setCameraTransformTime(tCam1 - tCam0);
 
-        // Depth sort pass
+        // Depth sort pass — replaced by z-buffer, no sorting needed
         long tSort0 = System.nanoTime();
-        rasterizer.sortByDepth(visibleTriangles);
+        // z-buffer handles occlusion per-pixel
         long tSort1 = System.nanoTime();
         game.Profiler.instance.setDepthSortTime(tSort1 - tSort0);
 
-        // Rasterize pass
+        // Clear depth buffer for z-buffer rasterization
+        rasterizer.clearDepthBuffer();
+
+        // Rasterize pass — z-buffer scanline rasterizer writes directly to pixel buffer
         long tRast0 = System.nanoTime();
         double scale = baseScale - spdPercentage * SPEED_SCALE;
         for (Face tri : visibleTriangles)
@@ -261,7 +278,7 @@ public class Renderer
             rasterizer.drawTriangle(g, tri, scale);
         }
 
-        // Draw points (stars) after triangles
+        // Draw points (stars) after triangles via rasterizer
         for (PointEntry p : pointList)
         {
             double px = p.position.getX() + negCamX;
@@ -271,11 +288,10 @@ public class Renderer
             Vector3 camSpace = camRotConj.rotate(new Vector3(px, py, pz));
             if (camSpace.getZ() > 0)
             {
-                Vector2 screen = projection.project(camSpace, scale);
-                g.setColor(p.color);
-                int sx = (int) Math.round(screen.getX());
-                int sy = (int) Math.round(screen.getY());
-                g.fillOval(sx - p.size / 2, sy - p.size / 2, p.size, p.size);
+                double invZ = 1.0 / camSpace.getZ();
+                int sx = (int) Math.round(camSpace.getX() * scale * invZ + screenWidth * 0.5);
+                int sy = (int) Math.round(camSpace.getY() * scale * invZ + screenHeight * 0.5);
+                rasterizer.drawPoint(sx, sy, p.size, p.color);
             }
         }
 

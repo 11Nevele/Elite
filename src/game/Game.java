@@ -5,6 +5,8 @@ import game.engine.Renderer;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
+import java.util.Arrays;
 import javax.swing.*;
 
 /**
@@ -16,8 +18,8 @@ public class Game extends JFrame implements Runnable
     public static final int HEIGHT = 1200;
 
     // 3D scene renders at half resolution, then upscaled
-    public static final int RENDER_WIDTH = WIDTH;
-    public static final int RENDER_HEIGHT = HEIGHT;
+    public static final int RENDER_WIDTH = WIDTH/2;
+    public static final int RENDER_HEIGHT = HEIGHT/2;
 
     private long lastTime;
     private Star[] stars;
@@ -66,8 +68,8 @@ public class Game extends JFrame implements Runnable
         Models.init();
         Audio.init();
 
-        // Create renderer at reduced resolution
-        Renderer.renderer = new Renderer(renderBuffer.getGraphics(), RENDER_WIDTH, RENDER_HEIGHT);
+        // Create renderer at reduced resolution with direct pixel buffer access
+        Renderer.renderer = new Renderer(renderBuffer.getGraphics(), RENDER_WIDTH, RENDER_HEIGHT, renderBuffer);
         CollisionManager.instance = new CollisionManager();
         AsteroidManager.instance = new AsteroidManager();
         UI.ui = new UI(WIDTH, HEIGHT);
@@ -154,9 +156,9 @@ public class Game extends JFrame implements Runnable
         Profiler.instance.setUpdateTime(t1 - t0);
         Profiler.instance.setGameObjectCount(GameObject.gameObjects.size());
 
-        // Clear render buffer (half resolution)
-        renderG.setColor(Color.BLACK);
-        renderG.fillRect(0, 0, RENDER_WIDTH, RENDER_HEIGHT);
+        // Clear render buffer pixel array directly (rasterizer writes to same array)
+        int[] renderPixels = ((DataBufferInt) renderBuffer.getRaster().getDataBuffer()).getData();
+        Arrays.fill(renderPixels, 0xFF000000);
 
         // Render 3D scene at reduced resolution
         Renderer.renderer.draw(renderG);
