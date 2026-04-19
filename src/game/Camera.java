@@ -9,19 +9,24 @@ import game.engine.*;
 public class Camera extends CollidableRenderable
 {
     public static Camera instance;
+    public static final double SCROLL_SPEED = 300;
 
-    private PlayerMovement movement;
-    private WeaponSystem weapons;
-    private CameraController cameraController;
+    private static final double MUZZLE_OFFSET = 8;
+
+    private final PlayerMovement movement;
+    private final WeaponSystem weapons;
+    private final CameraController cameraController;
+    private Quaternion railRotation;
 
     public Camera(Vector3 pos, Quaternion rot)
     {
-        super(Models.tieFighter);
+        super(Models.playerShip);
         instance = this;
         collisionLayer = CollisionLayer.PLAYER;
         boundingRadius = 5;
         position = new Vector3(pos);
         rotation = new Quaternion(rot);
+        railRotation = new Quaternion(rot);
 
         movement = new PlayerMovement();
         weapons = new WeaponSystem();
@@ -33,22 +38,22 @@ public class Camera extends CollidableRenderable
     {
         super.update(delta);
 
-        // Rotation
-        Quaternion rotDelta = movement.getRotationDelta(delta);
-        rotation = rotation.multiply(rotDelta);
+        Vector3 dodgeOffset = movement.update(delta, position);
+        Vector3 forwardOffset = new Vector3();
+        if (!GameState.gameState.isDead())
+        {
+            forwardOffset = EngineUtil.quaternionToDirection(railRotation).multiply(SCROLL_SPEED * delta);
+            GameState.gameState.addDistance(SCROLL_SPEED * delta);
+        }
 
-        // Movement
-        Vector3 velocity = movement.update(delta, rotation);
-        position = position.plus(velocity);
+        position = position.plus(dodgeOffset).plus(forwardOffset);
+        rotation = movement.getShipRotation();
 
-        // Weapon system
-        weapons.update(delta, position, rotation);
+        Vector3 muzzlePos = position.plus(EngineUtil.quaternionToDirection(railRotation).multiply(MUZZLE_OFFSET));
+        weapons.update(delta, muzzlePos, railRotation);
 
-        // Update renderer camera
-        cameraController.updateRendererCamera(position, rotation);
-
-        // Speed percentage for zoom effect
-        Renderer.renderer.spdPercentage = movement.getSpeed() / movement.getMaxSpeed();
+        cameraController.updateRendererCamera(position, railRotation);
+        Renderer.renderer.spdPercentage = 0;
     }
 
     @Override
@@ -69,13 +74,9 @@ public class Camera extends CollidableRenderable
     {
         position = new Vector3(pos);
         rotation = new Quaternion(rot);
+        railRotation = new Quaternion(rot);
         movement.reset();
         weapons.reset();
         cameraController.reset();
     }
-
-    public double getSpeed() { return movement.getSpeed(); }
-    public double getFuel() { return movement.getFuel(); }
-    public double getMaxSpeed() { return movement.getMaxSpeed(); }
-    public double getInitialFuel() { return movement.getInitialFuel(); }
 }

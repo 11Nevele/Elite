@@ -14,21 +14,21 @@ import javax.swing.*;
  */
 public class Game extends JFrame implements Runnable
 {
-    public static final int WIDTH = 1920;
-    public static final int HEIGHT = 1200;
+    public static final int WIDTH = 1270;// do not change this
+    public static final int HEIGHT = 800;
 
     // 3D scene renders at half resolution, then upscaled
-    public static final int RENDER_WIDTH = WIDTH/2;
-    public static final int RENDER_HEIGHT = HEIGHT/2;
+    public static final int RENDER_WIDTH = WIDTH;
+    public static final int RENDER_HEIGHT = HEIGHT;
 
     private long lastTime;
     private Star[] stars;
     private static final int STAR_COUNT = 200;
 
-    private BufferedImage screenBuffer;
-    private BufferedImage renderBuffer;
+    private final BufferedImage screenBuffer;
+    private final BufferedImage renderBuffer;
     private volatile boolean running;
-    private int targetFPS = 60;
+    private final int targetFPS = 60;
 
     public Game()
     {
@@ -74,8 +74,7 @@ public class Game extends JFrame implements Runnable
         AsteroidManager.instance = new AsteroidManager();
         UI.ui = new UI(WIDTH, HEIGHT);
 
-        // Create player camera
-        new Camera(new Vector3(0, 0, 0), new Quaternion());
+        createPlayer();
 
         // Create background stars (2D points, not 3D meshes)
         stars = new Star[STAR_COUNT];
@@ -176,6 +175,8 @@ public class Game extends JFrame implements Runnable
         Profiler.instance.setTotalFrameTime(System.nanoTime() - frameStart);
         Profiler.instance.endFrame();
         Profiler.instance.draw(screenG, WIDTH);
+
+        Input.input.update();
     }
 
     private void restartGame()
@@ -190,8 +191,7 @@ public class Game extends JFrame implements Runnable
         CollisionManager.instance.clear();
         AsteroidManager.instance.clear();
 
-        // Recreate player
-        new Camera(new Vector3(0, 0, 0), new Quaternion());
+        createPlayer();
 
         // Recreate stars
         for (int i = 0; i < STAR_COUNT; i++)
@@ -204,6 +204,11 @@ public class Game extends JFrame implements Runnable
     {
         Game game = new Game();
         game.start();
+    }
+
+    private void createPlayer()
+    {
+        Camera.instance = new Camera(new Vector3(0, 0, 0), new Quaternion());
     }
 }
 

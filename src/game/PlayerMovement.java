@@ -4,104 +4,84 @@ import game.engine.*;
 import java.awt.event.KeyEvent;
 
 /**
- * Manages player movement: acceleration, speed, fuel consumption.
+ * Manages bounded dodge movement for the rail-shooter prototype.
  */
 public class PlayerMovement
 {
-    private static final double MAX_SPEED = 1.0;
-    private static final double ACCELERATION = 0.3;
-    private static final double DECELERATION = 0.1;
-    private static final double FUEL_CONSUMPTION = 0.05;
-    private static final double INITIAL_FUEL = 100;
-    private static final double ROTATION_SPEED = 100;
+    private static final double HORIZONTAL_SPEED = 85;
+    private static final double VERTICAL_SPEED = 60;
+    private static final double MAX_X = 48;
+    private static final double MIN_Y = -22;
+    private static final double MAX_Y = 26;
+    private static final double MAX_BANK_DEGREES = -18;
+    private static final double MAX_PITCH_DEGREES = 10;
 
-    private double speed = 0;
-    private double fuel = INITIAL_FUEL;
-
-    public double getSpeed() { return speed; }
-    public double getFuel() { return fuel; }
-    public double getMaxSpeed() { return MAX_SPEED; }
-    public double getInitialFuel() { return INITIAL_FUEL; }
+    private double horizontalInput = 0;
+    private double verticalInput = 0;
 
     public void reset()
     {
-        speed = 0;
-        fuel = INITIAL_FUEL;
+        horizontalInput = 0;
+        verticalInput = 0;
     }
 
     /**
-     * Updates movement based on input.
-     * @return The velocity vector to apply to the camera position.
+     * Returns the bounded dodge movement to apply this frame.
      */
-    public Vector3 update(double delta, Quaternion rotation)
+    public Vector3 update(double delta, Vector3 position)
     {
         if (GameState.gameState.isDead())
         {
-            speed = Math.max(0, speed - DECELERATION * delta);
-        }
-        else
-        {
-            // Acceleration
-            if (Input.input.keys[KeyEvent.VK_W] || Input.input.keys[KeyEvent.VK_UP])
-            {
-                speed = Math.min(MAX_SPEED, speed + ACCELERATION * delta);
-            }
-            else
-            {
-                speed = Math.max(0, speed - DECELERATION * delta);
-            }
-
-            // Fuel consumption
-            if (speed > 0)
-            {
-                fuel -= FUEL_CONSUMPTION * delta * speed;
-                if (fuel <= 0)
-                {
-                    fuel = 0;
-                    GameState.gameState.setNoFuel(true);
-                }
-            }
+            horizontalInput = 0;
+            verticalInput = 0;
+            return new Vector3();
         }
 
-        Vector3 forward = EngineUtil.quaternionToDirection(rotation);
-        return forward.multiply(speed * 200 * delta);
+        horizontalInput = getHorizontalAxis();
+        verticalInput = getVerticalAxis();
+
+        double nextX = clamp(position.getX() + horizontalInput * HORIZONTAL_SPEED * delta, -MAX_X, MAX_X);
+        double nextY = clamp(position.getY() + verticalInput * VERTICAL_SPEED * delta, MIN_Y, MAX_Y);
+
+        return new Vector3(nextX - position.getX(), nextY - position.getY(), 0);
     }
 
-    /**
-     * Updates rotation based on input.
-     * @return Quaternion delta to apply to camera rotation.
-     */
-    public Quaternion getRotationDelta(double delta)
+    public Quaternion getShipRotation()
     {
-        if (GameState.gameState.isDead()) return new Quaternion();
+        return Quaternion.pitch(-verticalInput * MAX_PITCH_DEGREES)
+            .multiply(Quaternion.roll(-horizontalInput * MAX_BANK_DEGREES));
+    }
 
-        Quaternion rotDelta = new Quaternion();
-
+    private double getHorizontalAxis()
+    {
+        double axis = 0;
         if (Input.input.keys[KeyEvent.VK_A] || Input.input.keys[KeyEvent.VK_LEFT])
         {
-            rotDelta = rotDelta.multiply(Quaternion.yaw(-ROTATION_SPEED * delta));
+            axis -= 1;
         }
         if (Input.input.keys[KeyEvent.VK_D] || Input.input.keys[KeyEvent.VK_RIGHT])
         {
-            rotDelta = rotDelta.multiply(Quaternion.yaw(ROTATION_SPEED * delta));
+            axis += 1;
+        }
+        return axis;
+    }
+
+    private double getVerticalAxis()
+    {
+        double axis = 0;
+        if (Input.input.keys[KeyEvent.VK_W] || Input.input.keys[KeyEvent.VK_UP])
+        {
+            axis -= 1;
         }
         if (Input.input.keys[KeyEvent.VK_S] || Input.input.keys[KeyEvent.VK_DOWN])
         {
-            rotDelta = rotDelta.multiply(Quaternion.pitch(-ROTATION_SPEED * delta));
+            axis += 1;
         }
-        if (Input.input.keys[KeyEvent.VK_SHIFT])
-        {
-            rotDelta = rotDelta.multiply(Quaternion.pitch(ROTATION_SPEED * delta));
-        }
-        if (Input.input.keys[KeyEvent.VK_Q])
-        {
-            rotDelta = rotDelta.multiply(Quaternion.roll(-ROTATION_SPEED * delta));
-        }
-        if (Input.input.keys[KeyEvent.VK_E])
-        {
-            rotDelta = rotDelta.multiply(Quaternion.roll(ROTATION_SPEED * delta));
-        }
+        return axis;
+    }
 
-        return rotDelta;
+    private double clamp(double value, double min, double max)
+    {
+        return Math.max(min, Math.min(max, value));
     }
 }

@@ -10,8 +10,8 @@ public class AsteroidManager extends GameObject
 {
     public static AsteroidManager instance = new AsteroidManager();
 
-    private AsteroidSpawner asteroidSpawner = new AsteroidSpawner();
-    private EnemySpawner enemySpawner = new EnemySpawner();
+    private final AsteroidSpawner asteroidSpawner = new AsteroidSpawner();
+    private final EnemySpawner enemySpawner = new EnemySpawner();
 
     @Override
     public void update(double delta)
@@ -20,8 +20,7 @@ public class AsteroidManager extends GameObject
         if (Camera.instance != null)
         {
             Vector3 playerPos = Camera.instance.position;
-            asteroidSpawner.spawnIfNeeded(playerPos);
-            enemySpawner.spawnIfNeeded(playerPos);
+            enemySpawner.update(delta, playerPos);
         }
     }
 

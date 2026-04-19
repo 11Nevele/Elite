@@ -4,7 +4,7 @@ import game.engine.*;
 import java.awt.*;
 
 /**
- * Handles all HUD/UI rendering: crosshair, fuel bar, speed bar, score, death screen.
+ * Handles HUD rendering for the rail-shooter prototype.
  */
 public class UI
 {
@@ -16,6 +16,7 @@ public class UI
     private static final int BAR_HEIGHT = 20;
     private static final int BAR_MARGIN = 20;
     private static final int SCORE_MARGIN = 20;
+    private static final double SECTOR_LENGTH = 1000;
 
     private final int screenWidth;
     private final int screenHeight;
@@ -39,14 +40,14 @@ public class UI
         }
 
         drawCrosshair(g);
-        drawFuelBar(g);
-        drawSpeedBar(g);
+        drawStatusPanel(g);
+        drawSectorBar(g);
         drawScore(g);
     }
 
     private void drawCrosshair(Graphics g)
     {
-        g.setColor(Color.GREEN);
+        g.setColor(GameColors.STAR_WHITE);
         // Horizontal lines
         g.drawLine(centerX - CROSSHAIR_SIZE - CROSSHAIR_GAP, centerY,
                    centerX - CROSSHAIR_GAP, centerY);
@@ -59,56 +60,40 @@ public class UI
                    centerX, centerY + CROSSHAIR_SIZE + CROSSHAIR_GAP);
     }
 
-    private void drawFuelBar(Graphics g)
+    private void drawStatusPanel(Graphics g)
     {
-        if (Camera.instance == null) return;
+        int x = BAR_MARGIN;
+        int y = BAR_MARGIN;
+        int width = 240;
+        int height = 84;
 
-        double fuelPercent = Camera.instance.getFuel() / Camera.instance.getInitialFuel();
-        fuelPercent = Math.max(0, Math.min(1, fuelPercent));
+        g.setColor(new Color(0, 0, 0, 150));
+        g.fillRoundRect(x, y, width, height, 12, 12);
+        g.setColor(Color.WHITE);
+        g.drawRoundRect(x, y, width, height, 12, 12);
+
+        g.setFont(new Font("Monospaced", Font.BOLD, 20));
+        g.drawString("WAVE " + Math.max(1, GameState.gameState.getCurrentWave()), x + 16, y + 28);
+        g.drawString("KILLS " + GameState.gameState.getEnemiesDestroyed(), x + 16, y + 52);
+        g.drawString("DIST " + (int) GameState.gameState.getDistanceTravelled(), x + 16, y + 76);
+    }
+
+    private void drawSectorBar(Graphics g)
+    {
+        double sectorProgress = (GameState.gameState.getDistanceTravelled() % SECTOR_LENGTH) / SECTOR_LENGTH;
 
         int x = BAR_MARGIN;
         int y = screenHeight - BAR_MARGIN - BAR_HEIGHT;
 
-        // Background
         g.setColor(Color.DARK_GRAY);
         g.fillRect(x, y, BAR_WIDTH, BAR_HEIGHT);
 
-        // Fill
-        g.setColor(fuelPercent > 0.25 ? Color.CYAN : Color.RED);
-        g.fillRect(x, y, (int)(BAR_WIDTH * fuelPercent), BAR_HEIGHT);
+        g.setColor(GameColors.LASER_RED);
+        g.fillRect(x, y, (int)(BAR_WIDTH * sectorProgress), BAR_HEIGHT);
 
-        // Border
         g.setColor(Color.WHITE);
         g.drawRect(x, y, BAR_WIDTH, BAR_HEIGHT);
-
-        // Label
-        g.drawString("FUEL", x, y - 5);
-    }
-
-    private void drawSpeedBar(Graphics g)
-    {
-        if (Camera.instance == null) return;
-
-        double speedPercent = Camera.instance.getSpeed() / Camera.instance.getMaxSpeed();
-        speedPercent = Math.max(0, Math.min(1, speedPercent));
-
-        int x = BAR_MARGIN;
-        int y = screenHeight - BAR_MARGIN - BAR_HEIGHT * 2 - 10;
-
-        // Background
-        g.setColor(Color.DARK_GRAY);
-        g.fillRect(x, y, BAR_WIDTH, BAR_HEIGHT);
-
-        // Fill
-        g.setColor(Color.ORANGE);
-        g.fillRect(x, y, (int)(BAR_WIDTH * speedPercent), BAR_HEIGHT);
-
-        // Border
-        g.setColor(Color.WHITE);
-        g.drawRect(x, y, BAR_WIDTH, BAR_HEIGHT);
-
-        // Label
-        g.drawString("SPEED", x, y - 5);
+        g.drawString("SECTOR", x, y - 5);
     }
 
     private void drawScore(Graphics g)
@@ -131,7 +116,7 @@ public class UI
         g.setFont(new Font("Monospaced", Font.BOLD, 48));
         g.setColor(Color.RED);
 
-        String deathMsg = GameState.gameState.isCrashed() ? "DESTROYED" : "OUT OF FUEL";
+        String deathMsg = GameState.gameState.isCrashed() ? "DESTROYED" : "MISSION FAILED";
         FontMetrics fm = g.getFontMetrics();
         int textWidth = fm.stringWidth(deathMsg);
         g.drawString(deathMsg, centerX - textWidth / 2, centerY - 30);
@@ -143,9 +128,13 @@ public class UI
         textWidth = fm.stringWidth(scoreMsg);
         g.drawString(scoreMsg, centerX - textWidth / 2, centerY + 20);
 
+        String waveMsg = "Wave: " + Math.max(1, GameState.gameState.getCurrentWave());
+        textWidth = fm.stringWidth(waveMsg);
+        g.drawString(waveMsg, centerX - textWidth / 2, centerY + 50);
+
         String restartMsg = "Press R to restart";
         textWidth = fm.stringWidth(restartMsg);
-        g.drawString(restartMsg, centerX - textWidth / 2, centerY + 60);
+        g.drawString(restartMsg, centerX - textWidth / 2, centerY + 90);
 
         // Handle restart input
         if (Input.input.keys[java.awt.event.KeyEvent.VK_R])

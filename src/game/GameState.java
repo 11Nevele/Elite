@@ -1,7 +1,7 @@
 package game;
 
 /**
- * Tracks the current game state: score, fuel, crash status, restart flag.
+ * Tracks the current game state for the rail-shooter prototype.
  */
 public class GameState
 {
@@ -12,18 +12,24 @@ public class GameState
     private int highScore;
     private int score;
     private boolean restartGame;
+    private double distanceTravelled;
+    private int currentWave;
+    private int enemiesDestroyed;
 
     public GameState()
     {
         reset();
     }
 
-    public void reset()
+    public final void reset()
     {
         crashed = false;
         noFuel = false;
         score = 0;
         restartGame = false;
+        distanceTravelled = 0;
+        currentWave = 0;
+        enemiesDestroyed = 0;
     }
 
     public boolean isCrashed() { return crashed; }
@@ -36,11 +42,24 @@ public class GameState
     public void setHighScore(int highScore) { this.highScore = highScore; }
 
     public int getScore() { return score; }
-    public void setScore(int score) { this.score = score; }
-    public void addScore(int points) { this.score += points; }
+    public void setScore(int score)
+    {
+        this.score = score;
+        highScore = Math.max(highScore, score);
+    }
+    public void addScore(int points) { setScore(score + points); }
 
     public boolean isRestartGame() { return restartGame; }
     public void setRestartGame(boolean restartGame) { this.restartGame = restartGame; }
+
+    public double getDistanceTravelled() { return distanceTravelled; }
+    public void addDistance(double distanceTravelled) { this.distanceTravelled += distanceTravelled; }
+
+    public int getCurrentWave() { return currentWave; }
+    public void setCurrentWave(int currentWave) { this.currentWave = currentWave; }
+
+    public int getEnemiesDestroyed() { return enemiesDestroyed; }
+    public void recordEnemyDestroyed() { enemiesDestroyed++; }
 
     public boolean isDead()
     {

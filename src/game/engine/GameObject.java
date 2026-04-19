@@ -6,7 +6,7 @@ import java.util.ArrayList;
  * Base class for all game objects in the game world.
  * Provides position, rotation, and lifecycle management.
  */
-public class GameObject implements AutoCloseable
+public class GameObject
 {
     public static ArrayList<GameObject> gameObjects = new ArrayList<>();
     public static ArrayList<GameObject> removedObjects = new ArrayList<>();
@@ -55,7 +55,6 @@ public class GameObject implements AutoCloseable
         return rotation.asEuler();
     }
 
-    @Override
     public void close()
     {
         destroy();
