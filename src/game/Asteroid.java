@@ -33,7 +33,8 @@ public class Asteroid extends CollidableRenderable
     {
         super.update(delta);
         rotation = rotation.multiply(Quaternion.fromAxisAngle(rotationAxis, rotationVelocity * delta));
-        position = position.plus(velocity.multiply(delta));
+        Vector3 worldVelocity = velocity.plus(Camera.getWorldScrollVelocity());
+        position = position.plus(worldVelocity.multiply(delta));
 
         // Remove if too far away
         if (position.magnitude() > MAX_DISTANCE)

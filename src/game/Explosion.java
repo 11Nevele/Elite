@@ -31,7 +31,8 @@ public class Explosion extends Renderable
             GameObject.destroyObject(this);
             return;
         }
-        position = position.plus(velocity.multiply(delta));
+        Vector3 worldVelocity = velocity.plus(Camera.getWorldScrollVelocity());
+        position = position.plus(worldVelocity.multiply(delta));
         scale = 0.5 + age * 2;
     }
 

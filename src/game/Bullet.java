@@ -31,7 +31,8 @@ public class Bullet extends CollidableRenderable
             GameObject.destroyObject(this);
             return;
         }
-        position = position.plus(velocity.multiply(delta));
+        Vector3 worldVelocity = velocity.plus(Camera.getWorldScrollVelocity());
+        position = position.plus(worldVelocity.multiply(delta));
     }
 
     @Override

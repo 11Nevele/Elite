@@ -9,7 +9,7 @@ import game.engine.*;
 public class Camera extends CollidableRenderable
 {
     public static Camera instance;
-    public static final double SCROLL_SPEED = 300;
+    public static final double SCROLL_SPEED = 200;
 
     private static final double MUZZLE_OFFSET = 8;
 
@@ -39,17 +39,15 @@ public class Camera extends CollidableRenderable
         super.update(delta);
 
         Vector3 dodgeOffset = movement.update(delta, position);
-        Vector3 forwardOffset = new Vector3();
         if (!GameState.gameState.isDead())
         {
-            forwardOffset = EngineUtil.quaternionToDirection(railRotation).multiply(SCROLL_SPEED * delta);
             GameState.gameState.addDistance(SCROLL_SPEED * delta);
         }
 
-        position = position.plus(dodgeOffset).plus(forwardOffset);
+        position = position.plus(dodgeOffset);
         rotation = movement.getShipRotation();
 
-        Vector3 muzzlePos = position.plus(EngineUtil.quaternionToDirection(railRotation).multiply(MUZZLE_OFFSET));
+        Vector3 muzzlePos = position.plus(getRailForward().multiply(MUZZLE_OFFSET));
         weapons.update(delta, muzzlePos, railRotation);
 
         cameraController.updateRendererCamera(position, railRotation);
@@ -78,5 +76,35 @@ public class Camera extends CollidableRenderable
         movement.reset();
         weapons.reset();
         cameraController.reset();
+    }
+
+    public static Vector3 getWorldScrollVelocity()
+    {
+        if (instance == null || GameState.gameState == null || GameState.gameState.isDead())
+        {
+            return new Vector3();
+        }
+
+        return instance.getRailForward().multiply(-SCROLL_SPEED);
+    }
+
+    public static Vector3 getWorldScrollDelta(double delta)
+    {
+        return getWorldScrollVelocity().multiply(delta);
+    }
+
+    public static Vector3 getWorldScrollOffset()
+    {
+        if (instance == null || GameState.gameState == null)
+        {
+            return new Vector3();
+        }
+
+        return instance.getRailForward().multiply(-GameState.gameState.getDistanceTravelled());
+    }
+
+    private Vector3 getRailForward()
+    {
+        return EngineUtil.quaternionToDirection(railRotation);
     }
 }
