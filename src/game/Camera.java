@@ -111,6 +111,11 @@ public class Camera extends CollidableRenderable
         return instance.getRailForward().multiply(-GameState.gameState.getDistanceTravelled());
     }
 
+    public WeaponSystem getWeapons()
+    {
+        return weapons;
+    }
+
     private Vector3 getRailForward()
     {
         return EngineUtil.quaternionToDirection(railRotation);

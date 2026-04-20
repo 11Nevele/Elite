@@ -104,6 +104,16 @@ public class Renderer
         return baseScale;
     }
 
+    public Vector3 getCameraPosition()
+    {
+        return curCameraPos;
+    }
+
+    public Quaternion getCameraRotation()
+    {
+        return curCameraRot;
+    }
+
     private Face getScratchFace(Face src)
     {
         if (scratchSize >= scratchFaces.length)

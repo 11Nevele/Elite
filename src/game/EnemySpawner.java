@@ -8,20 +8,20 @@ import game.engine.*;
 public class EnemySpawner
 {
     private static final int MAX_ACTIVE_ENEMIES = 12;
-    private static final double HOLD_DISTANCE = 120;
+    private static final double HOLD_DISTANCE = 20;
     private static final double FRONT_ENTRY_DEPTH = 180;
     private static final double BACK_ENTRY_DEPTH = 170;
     private static final double FRONT_ENTRY_SIDE_OFFSET = 340;
     private static final double BACK_ENTRY_SIDE_JITTER = 48;
     private static final double BACK_ENTRY_VERTICAL_JITTER = 24;
-    private static final double MIN_HOLD_DURATION = 1.4;
-    private static final double MAX_HOLD_DURATION = 3.6;
+    private static final double MIN_HOLD_DURATION = 3;
+    private static final double MAX_HOLD_DURATION = 7;
     private static final double FRONT_ENTRY_SPEED = 180;
     private static final double BACK_ENTRY_SPEED = 300;
     private static final double BASE_EXIT_SPEED = 220;
     private static final double EXIT_SPEED_VARIANCE = 40;
     private static final double EXIT_VERTICAL_SPEED = 18;
-    private static final double WAVE_INTERVAL = 2.4;
+    private static final double WAVE_INTERVAL = 5;
 
     private int enemyCount = 0;
     private int waveNumber = 0;

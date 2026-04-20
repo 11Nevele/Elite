@@ -27,6 +27,11 @@ public class AssetLoader
         return ObjReader.readObj(MODEL_DIR + "untitled.obj");
     }
 
+    public static Face[] loadBullet()
+    {
+        return ObjReader.readObj(MODEL_DIR + "bullet.obj");
+    }
+
     public static Face[] loadAsteroid(int variant)
     {
         return ObjReader.readObj(MODEL_DIR + "asteroids" + variant + ".obj");

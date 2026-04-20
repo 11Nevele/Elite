@@ -17,8 +17,8 @@ public class Bullet extends CollidableRenderable
         position = new Vector3(pos);
         this.velocity = velocity;
         this.lifetime = lifetime;
-        boundingRadius = 1;
-        scale = 0.5;
+        boundingRadius = 2;
+        scale = 1;
     }
 
     @Override

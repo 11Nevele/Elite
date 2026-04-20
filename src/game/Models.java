@@ -19,6 +19,7 @@ public class Models
         playerShip = AssetLoader.loadPlayerShip();
         tieFighter = AssetLoader.loadTieFighter();
         deathStar = AssetLoader.loadDeathStar();
+        bulletModel = AssetLoader.loadBullet();
 
         asteroids = new Face[3][];
         for (int i = 0; i < 3; i++)
@@ -26,7 +27,5 @@ public class Models
             asteroids[i] = AssetLoader.loadAsteroid(i);
         }
 
-        bulletModel = ProceduralMeshes.getSphere(
-            0.3, 4, 4, GameColors.LASER_RED, GameColors.LASER_RED);
     }
 }
