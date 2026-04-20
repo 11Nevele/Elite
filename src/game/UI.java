@@ -10,8 +10,6 @@ public class UI
 {
     public static UI ui;
 
-    private static final int CROSSHAIR_SIZE = 10;
-    private static final int CROSSHAIR_GAP = 5;
     private static final int BAR_WIDTH = 200;
     private static final int BAR_HEIGHT = 20;
     private static final int BAR_MARGIN = 20;
@@ -39,25 +37,9 @@ public class UI
             return;
         }
 
-        drawCrosshair(g);
         drawStatusPanel(g);
         drawSectorBar(g);
         drawScore(g);
-    }
-
-    private void drawCrosshair(Graphics g)
-    {
-        g.setColor(GameColors.STAR_WHITE);
-        // Horizontal lines
-        g.drawLine(centerX - CROSSHAIR_SIZE - CROSSHAIR_GAP, centerY,
-                   centerX - CROSSHAIR_GAP, centerY);
-        g.drawLine(centerX + CROSSHAIR_GAP, centerY,
-                   centerX + CROSSHAIR_SIZE + CROSSHAIR_GAP, centerY);
-        // Vertical lines
-        g.drawLine(centerX, centerY - CROSSHAIR_SIZE - CROSSHAIR_GAP,
-                   centerX, centerY - CROSSHAIR_GAP);
-        g.drawLine(centerX, centerY + CROSSHAIR_GAP,
-                   centerX, centerY + CROSSHAIR_SIZE + CROSSHAIR_GAP);
     }
 
     private void drawStatusPanel(Graphics g)

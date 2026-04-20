@@ -28,7 +28,7 @@ public class Star extends GameObject
             color = GameColors.STAR_WHITE;
         else
             color = GameColors.STAR_YELLOW;
-        size = (Math.random() > 0.7) ? 3 : 2;
+        size = (Math.random() > 0.7) ? 2 : 1;
 
         respawnInitial();
     }

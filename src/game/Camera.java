@@ -12,6 +12,7 @@ public class Camera extends CollidableRenderable
     public static final double SCROLL_SPEED = 200;
 
     private static final double MUZZLE_OFFSET = 8;
+    private static final Quaternion MODEL_UPRIGHT_ROTATION = Quaternion.roll(180);
 
     private final PlayerMovement movement;
     private final WeaponSystem weapons;
@@ -25,7 +26,7 @@ public class Camera extends CollidableRenderable
         collisionLayer = CollisionLayer.PLAYER;
         boundingRadius = 5;
         position = new Vector3(pos);
-        rotation = new Quaternion(rot);
+        rotation = rot.multiply(MODEL_UPRIGHT_ROTATION).normalize();
         railRotation = new Quaternion(rot);
 
         movement = new PlayerMovement();
@@ -45,13 +46,20 @@ public class Camera extends CollidableRenderable
         }
 
         position = position.plus(dodgeOffset);
-        rotation = movement.getShipRotation();
+        Quaternion shipRotation = movement.getShipRotation();
+        rotation = shipRotation.multiply(MODEL_UPRIGHT_ROTATION).normalize();
 
-        Vector3 muzzlePos = position.plus(getRailForward().multiply(MUZZLE_OFFSET));
-        weapons.update(delta, muzzlePos, railRotation);
+        Vector3 shipForward = EngineUtil.quaternionToDirection(shipRotation).normalize();
+        Vector3 muzzlePos = position.plus(shipForward.multiply(MUZZLE_OFFSET));
+        weapons.update(delta, muzzlePos, shipRotation);
 
-        cameraController.updateRendererCamera(position, railRotation);
-        Renderer.renderer.spdPercentage = 0;
+        cameraController.updateRendererCamera(
+            delta,
+            position,
+            railRotation,
+            movement.getHorizontalInput(),
+            movement.getVerticalInput()
+        );
     }
 
     @Override
@@ -71,7 +79,7 @@ public class Camera extends CollidableRenderable
     public void reset(Vector3 pos, Quaternion rot)
     {
         position = new Vector3(pos);
-        rotation = new Quaternion(rot);
+        rotation = rot.multiply(MODEL_UPRIGHT_ROTATION).normalize();
         railRotation = new Quaternion(rot);
         movement.reset();
         weapons.reset();

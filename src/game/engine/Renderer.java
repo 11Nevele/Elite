@@ -35,6 +35,7 @@ public class Renderer
     private final TriangleRasterizer rasterizer;
     private final double screenWidth;
     private final double screenHeight;
+    private boolean collisionDebugVisible = false;
 
     // Maximum render distance — objects beyond this are culled
     private static final double MAX_RENDER_DISTANCE = 10000;
@@ -46,6 +47,8 @@ public class Renderer
 
     // Point rendering list for stars etc.
     private ArrayList<PointEntry> pointList;
+    private final double[] colliderCenterProjection = new double[2];
+    private final double[] colliderEdgeProjection = new double[2];
 
     private static class PointEntry
     {
@@ -198,9 +201,102 @@ public class Renderer
         }
     }
 
+    private void projectCameraSpacePoint(double x, double y, double z, double scale, double[] out)
+    {
+        if (z <= 0)
+        {
+            out[0] = x * 100000;
+            out[1] = y * 100000;
+            return;
+        }
+
+        double invZ = 1.0 / z;
+        out[0] = x * scale * invZ + screenWidth * 0.5;
+        out[1] = y * scale * invZ + screenHeight * 0.5;
+    }
+
+    private Color getCollisionDebugColor(int layer)
+    {
+        return switch (layer)
+        {
+            case CollisionLayer.PLAYER -> new Color(0, 220, 255, 200);
+            case CollisionLayer.ENEMY -> new Color(255, 80, 80, 200);
+            case CollisionLayer.ENEMY_BACK_ENTRY -> new Color(255, 150, 150, 200);
+            case CollisionLayer.ASTEROID -> new Color(255, 190, 0, 200);
+            case CollisionLayer.BULLET -> new Color(80, 255, 120, 200);
+            default -> new Color(255, 255, 255, 180);
+        };
+    }
+
+    private void drawCollisionDebug(Graphics g, Quaternion cameraRotationConjugate,
+                                    double negCamX, double negCamY, double negCamZ, double scale)
+    {
+        if (CollisionManager.instance == null)
+        {
+            return;
+        }
+
+        Graphics2D g2 = (Graphics2D) g;
+        Stroke previousStroke = g2.getStroke();
+        g2.setStroke(new BasicStroke(1.5f));
+
+        double qx = cameraRotationConjugate.getX();
+        double qy = cameraRotationConjugate.getY();
+        double qz = cameraRotationConjugate.getZ();
+        double qw = cameraRotationConjugate.getW();
+        int maxRadius = (int) Math.ceil(Math.max(screenWidth, screenHeight) * 2);
+
+        for (Collidable collider : CollisionManager.instance.getCollidables())
+        {
+            Vector3 position = collider.getPosition();
+            double relX = position.getX() + negCamX;
+            double relY = position.getY() + negCamY;
+            double relZ = position.getZ() + negCamZ;
+
+            double tx = 2 * (qy * relZ - qz * relY);
+            double ty = 2 * (qz * relX - qx * relZ);
+            double tz = 2 * (qx * relY - qy * relX);
+
+            double camX = relX + qw * tx + (qy * tz - qz * ty);
+            double camY = relY + qw * ty + (qz * tx - qx * tz);
+            double camZ = relZ + qw * tz + (qx * ty - qy * tx);
+
+            if (camZ <= 0.01)
+            {
+                continue;
+            }
+
+            projectCameraSpacePoint(camX, camY, camZ, scale, colliderCenterProjection);
+            projectCameraSpacePoint(camX + collider.getBoundingRadius(), camY, camZ, scale, colliderEdgeProjection);
+
+            int centerX = (int) Math.round(colliderCenterProjection[0]);
+            int centerY = (int) Math.round(colliderCenterProjection[1]);
+            int radiusPx = (int) Math.round(Math.abs(colliderEdgeProjection[0] - colliderCenterProjection[0]));
+            radiusPx = Math.max(1, Math.min(radiusPx, maxRadius));
+
+            if (centerX + radiusPx < 0 || centerX - radiusPx > screenWidth
+                || centerY + radiusPx < 0 || centerY - radiusPx > screenHeight)
+            {
+                continue;
+            }
+
+            g2.setColor(getCollisionDebugColor(collider.getCollisionLayer()));
+            g2.drawOval(centerX - radiusPx, centerY - radiusPx, radiusPx * 2, radiusPx * 2);
+            g2.fillRect(centerX - 1, centerY - 1, 3, 3);
+        }
+
+        g2.setColor(new Color(255, 255, 255, 220));
+        g2.drawString("COLLISION DEBUG [F4]", 12, 20);
+
+        g2.setStroke(previousStroke);
+    }
+
     public void draw(Graphics g)
     {
         this.g = g;
+        if (Input.input.isKeyPressed(KeyEvent.VK_F4))
+            collisionDebugVisible = !collisionDebugVisible;
+
         if (Input.input.keys[KeyEvent.VK_F])
             baseScale = ZOOM_SCALE;
         else
@@ -293,6 +389,11 @@ public class Renderer
                 int sy = (int) Math.round(camSpace.getY() * scale * invZ + screenHeight * 0.5);
                 rasterizer.drawPoint(sx, sy, p.size, p.color);
             }
+        }
+
+        if (collisionDebugVisible)
+        {
+            drawCollisionDebug(g, camRotConj, negCamX, negCamY, negCamZ, scale);
         }
 
         long tRast1 = System.nanoTime();

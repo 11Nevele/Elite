@@ -1,8 +1,10 @@
 package game.engine;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 /**
  * Manages collision detection between game objects using a layer-based system.
@@ -24,6 +26,11 @@ public class CollisionManager extends GameObject
         activeCollisions.clear();
         idMap.clear();
         idCnt = 0;
+    }
+
+    public List<Collidable> getCollidables()
+    {
+        return Collections.unmodifiableList(collidables);
     }
 
     public int register(Collidable c)
