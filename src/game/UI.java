@@ -2,7 +2,6 @@ package game;
 
 import game.engine.*;
 import java.awt.*;
-import java.awt.event.KeyEvent;
 
 /**
  * Handles HUD rendering for the rail-shooter prototype.
@@ -15,16 +14,13 @@ public class UI
     private static final int BAR_HEIGHT = 20;
     private static final int BAR_MARGIN = 20;
     private static final int SCORE_MARGIN = 20;
+    private static final int AIM_RETICLE_RADIUS = 10;
     private static final double SECTOR_LENGTH = 1000;
-    private static final int AIM_DEBUG_PANEL_WIDTH = 250;
-    private static final int AIM_DEBUG_PANEL_HEIGHT = 132;
-    private static final int AIM_DEBUG_MARKER_RADIUS = 12;
 
     private final int screenWidth;
     private final int screenHeight;
     private final int centerX;
     private final int centerY;
-    private boolean aimAssistDebugVisible = false;
 
     public UI(int width, int height)
     {
@@ -36,8 +32,6 @@ public class UI
 
     public void draw(Graphics g)
     {
-        toggleAimAssistDebugIfPressed();
-
         if (GameState.gameState.isDead())
         {
             drawDeathScreen(g);
@@ -47,15 +41,7 @@ public class UI
         drawStatusPanel(g);
         drawSectorBar(g);
         drawScore(g);
-        drawAimAssistDebug(g);
-    }
-
-    private void toggleAimAssistDebugIfPressed()
-    {
-        if (Input.input.isKeyPressed(KeyEvent.VK_F5))
-        {
-            aimAssistDebugVisible = !aimAssistDebugVisible;
-        }
+        drawHoldDistanceAim(g);
     }
 
     private void drawStatusPanel(Graphics g)
@@ -105,56 +91,20 @@ public class UI
         g.drawString(highScoreText, screenWidth - SCORE_MARGIN - 200, SCORE_MARGIN + 45);
     }
 
-    private void drawAimAssistDebug(Graphics g)
+    private void drawHoldDistanceAim(Graphics g)
     {
-        if (!aimAssistDebugVisible || Camera.instance == null || Renderer.renderer == null)
+        if (Camera.instance == null)
         {
             return;
         }
 
-        WeaponSystem.AimAssistDebugState debugState = Camera.instance.getWeapons().getAimAssistDebugState();
-        drawAimAssistPanel(g, debugState);
-
-        if (debugState.hasTarget())
+        WeaponSystem weapons = Camera.instance.getWeapons();
+        if (!weapons.hasCurrentAimPointAtHoldDistance())
         {
-            drawAimAssistMarker(g, debugState.getTargetPosition());
+            return;
         }
-    }
 
-    private void drawAimAssistPanel(Graphics g, WeaponSystem.AimAssistDebugState debugState)
-    {
-        int x = screenWidth - SCORE_MARGIN - AIM_DEBUG_PANEL_WIDTH;
-        int y = SCORE_MARGIN + 62;
-
-        g.setColor(new Color(0, 0, 0, 170));
-        g.fillRoundRect(x, y, AIM_DEBUG_PANEL_WIDTH, AIM_DEBUG_PANEL_HEIGHT, 12, 12);
-        g.setColor(new Color(120, 255, 255));
-        g.drawRoundRect(x, y, AIM_DEBUG_PANEL_WIDTH, AIM_DEBUG_PANEL_HEIGHT, 12, 12);
-
-        g.setFont(new Font("Monospaced", Font.BOLD, 16));
-        g.drawString("AIM DEBUG [F5]", x + 14, y + 22);
-
-        g.setFont(new Font("Monospaced", Font.PLAIN, 14));
-        g.setColor(Color.WHITE);
-        g.drawString("Target: " + (debugState.hasTarget() ? "LOCKED" : "NONE"), x + 14, y + 46);
-        g.drawString(String.format("Range: %.0f  Blend: %.2f", WeaponSystem.getAimAssistRange(), WeaponSystem.getAimAssistBlend()), x + 14, y + 66);
-        g.drawString(String.format("Cone: %.2f", WeaponSystem.getAimAssistConeDot()), x + 14, y + 86);
-
-        if (debugState.hasTarget())
-        {
-            g.drawString(String.format("Dist: %.1f", debugState.getTargetDistance()), x + 14, y + 106);
-            g.drawString(String.format("Align: %.3f  Score: %.3f", debugState.getTargetAlignment(), debugState.getTargetScore()), x + 14, y + 126);
-        }
-        else
-        {
-            g.drawString("Dist: --", x + 14, y + 106);
-            g.drawString("Align: --     Score: --", x + 14, y + 126);
-        }
-    }
-
-    private void drawAimAssistMarker(Graphics g, Vector3 worldPosition)
-    {
-        Vector2 screenPosition = projectWorldToScreen(worldPosition);
+        Vector2 screenPosition = projectWorldToScreen(weapons.getCurrentAimPointAtHoldDistance());
         if (screenPosition == null)
         {
             return;
@@ -171,13 +121,16 @@ public class UI
         Stroke previousStroke = g2.getStroke();
         g2.setStroke(new BasicStroke(2f));
 
-        g2.setColor(new Color(120, 255, 255, 220));
-        g2.drawOval(sx - AIM_DEBUG_MARKER_RADIUS, sy - AIM_DEBUG_MARKER_RADIUS,
-            AIM_DEBUG_MARKER_RADIUS * 2, AIM_DEBUG_MARKER_RADIUS * 2);
-        g2.drawLine(centerX - 6, centerY, centerX + 6, centerY);
-        g2.drawLine(centerX, centerY - 6, centerX, centerY + 6);
-        g2.drawLine(centerX, centerY, sx, sy);
-        g2.fillRect(sx - 2, sy - 2, 5, 5);
+        g2.setColor(new Color(255, 220, 120, 220));
+        g2.drawOval(sx - AIM_RETICLE_RADIUS, sy - AIM_RETICLE_RADIUS,
+            AIM_RETICLE_RADIUS * 2, AIM_RETICLE_RADIUS * 2);
+        g2.drawLine(sx - AIM_RETICLE_RADIUS - 6, sy, sx - 4, sy);
+        g2.drawLine(sx + 4, sy, sx + AIM_RETICLE_RADIUS + 6, sy);
+        g2.drawLine(sx, sy - AIM_RETICLE_RADIUS - 6, sx, sy - 4);
+        g2.drawLine(sx, sy + 4, sx, sy + AIM_RETICLE_RADIUS + 6);
+
+        g2.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        g2.drawString(String.format("AIM @ %.0f", EnemySpawner.getHoldDistance()), sx + 14, sy - 10);
 
         g2.setStroke(previousStroke);
     }
@@ -194,6 +147,7 @@ public class UI
         Quaternion cameraRotation = renderer.getCameraRotation();
         Vector3 relative = worldPosition.minus(cameraPosition);
         relative = cameraRotation.conjugate().rotate(relative);
+
         if (relative.getZ() <= 0)
         {
             return null;
@@ -208,7 +162,6 @@ public class UI
 
     private void drawDeathScreen(Graphics g)
     {
-        // Semi-transparent overlay
         g.setColor(new Color(0, 0, 0, 150));
         g.fillRect(0, 0, screenWidth, screenHeight);
 
@@ -235,7 +188,6 @@ public class UI
         textWidth = fm.stringWidth(restartMsg);
         g.drawString(restartMsg, centerX - textWidth / 2, centerY + 90);
 
-        // Handle restart input
         if (Input.input.keys[java.awt.event.KeyEvent.VK_R])
         {
             GameState.gameState.setRestartGame(true);
@@ -244,7 +196,6 @@ public class UI
 
     public void drawBullet(Graphics g, Vector3 bulletPos, Quaternion cameraRot, Vector3 cameraPos)
     {
-        // Project bullet position to screen for HUD indicator
         Vector3 relative = bulletPos.minus(cameraPos);
         relative = cameraRot.conjugate().rotate(relative);
 

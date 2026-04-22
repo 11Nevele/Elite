@@ -66,7 +66,9 @@ public class Camera extends CollidableRenderable
     public void onCollisionEnter(Collidable other)
     {
         int layer = other.getCollisionLayer();
-        if (layer == CollisionLayer.ASTEROID || layer == CollisionLayer.ENEMY)
+        if (layer == CollisionLayer.ASTEROID
+            || layer == CollisionLayer.ENEMY
+            || layer == CollisionLayer.ENEMY_BULLET)
         {
             if (!GameState.gameState.isDead())
             {

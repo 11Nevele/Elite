@@ -3,7 +3,7 @@ package game;
 import game.engine.*;
 
 /**
- * Spawns timed enemy waves ahead of the player rail.
+ * Spawns timed enemy waves around a fixed world-space center.
  */
 public class EnemySpawner
 {
@@ -27,7 +27,7 @@ public class EnemySpawner
     private int waveNumber = 0;
     private double waveTimer = 1.2;
 
-    public void update(double delta, Vector3 playerPos)
+    public void update(double delta)
     {
         if (GameState.gameState.isDead())
         {
@@ -42,7 +42,7 @@ public class EnemySpawner
 
         waveNumber++;
         GameState.gameState.setCurrentWave(waveNumber);
-        spawnWave(playerPos, waveNumber);
+        spawnWave(waveNumber);
         waveTimer = Math.max(1.5, WAVE_INTERVAL - Math.min(0.8, waveNumber * 0.05));
     }
 
@@ -58,24 +58,28 @@ public class EnemySpawner
         waveTimer = 1.2;
     }
 
-    private void spawnWave(Vector3 playerPos, int waveIndex)
+    public static double getHoldDistance()
+    {
+        return HOLD_DISTANCE;
+    }
+
+    private void spawnWave(int waveIndex)
     {
         switch ((waveIndex - 1) % 4)
         {
-            case 0 -> spawnLineFormation(playerPos);
-            case 1 -> spawnSweeper(playerPos, -1);
-            case 2 -> spawnSweeper(playerPos, 1);
-            default -> spawnSerpentine(playerPos);
+            case 0 -> spawnLineFormation();
+            case 1 -> spawnSweeper(-1);
+            case 2 -> spawnSweeper(1);
+            default -> spawnSerpentine();
         }
     }
 
-    private void spawnLineFormation(Vector3 playerPos)
+    private void spawnLineFormation()
     {
         double[] lanes = {-36, -12, 12, 36};
         for (int i = 0; i < lanes.length; i++)
         {
             spawnEnemy(
-                playerPos,
                 new Vector3(lanes[i], -6 + i * 4, HOLD_DISTANCE + i * 12),
                 new Vector3(),
                 new Vector3(),
@@ -86,14 +90,13 @@ public class EnemySpawner
         }
     }
 
-    private void spawnSweeper(Vector3 playerPos, double side)
+    private void spawnSweeper(double side)
     {
         double spawnX = side < 0 ? -72 : 72;
         double horizontalSpeed = side < 0 ? 24 : -24;
         for (int i = 0; i < 3; i++)
         {
             spawnEnemy(
-                playerPos,
                 new Vector3(spawnX, -16 + i * 16, HOLD_DISTANCE + i * 18),
                 new Vector3(horizontalSpeed, 0, 0),
                 new Vector3(0, 1, 0),
@@ -104,13 +107,12 @@ public class EnemySpawner
         }
     }
 
-    private void spawnSerpentine(Vector3 playerPos)
+    private void spawnSerpentine()
     {
         for (int i = 0; i < 4; i++)
         {
             double lane = -30 + i * 20;
             spawnEnemy(
-                playerPos,
                 new Vector3(lane, -18 + i * 8, HOLD_DISTANCE + i * 14),
                 new Vector3(),
                 new Vector3(i % 2 == 0 ? 1 : -1, 0, 0),
@@ -121,7 +123,7 @@ public class EnemySpawner
         }
     }
 
-    private void spawnEnemy(Vector3 playerPos, Vector3 holdOffset, Vector3 holdDriftVelocity,
+    private void spawnEnemy(Vector3 holdPosition, Vector3 holdDriftVelocity,
                             Vector3 oscillationAxis, double oscillationAmplitude,
                             double oscillationFrequency, double oscillationPhase)
     {
@@ -131,8 +133,7 @@ public class EnemySpawner
         }
 
         Enemy.EntryType entryType = Math.random() < 0.5 ? Enemy.EntryType.FRONT : Enemy.EntryType.BACK;
-        Vector3 holdPosition = playerPos.plus(holdOffset);
-        Vector3 spawnPosition = createSpawnPosition(playerPos, holdPosition, entryType);
+        Vector3 spawnPosition = createSpawnPosition(holdPosition, entryType);
         double holdDuration = randomBetween(MIN_HOLD_DURATION, MAX_HOLD_DURATION);
         double entrySpeed = entryType == Enemy.EntryType.FRONT ? FRONT_ENTRY_SPEED : BACK_ENTRY_SPEED;
         double exitDirection = Math.random() < 0.5 ? -1 : 1;
@@ -156,7 +157,7 @@ public class EnemySpawner
         registerSpawnedEnemy(enemy);
     }
 
-    private Vector3 createSpawnPosition(Vector3 playerPos, Vector3 holdPosition, Enemy.EntryType entryType)
+    private Vector3 createSpawnPosition(Vector3 holdPosition, Enemy.EntryType entryType)
     {
         if (entryType == Enemy.EntryType.FRONT)
         {
@@ -171,7 +172,7 @@ public class EnemySpawner
         return new Vector3(
             holdPosition.getX() + randomBetween(-BACK_ENTRY_SIDE_JITTER, BACK_ENTRY_SIDE_JITTER),
             holdPosition.getY() + randomBetween(-BACK_ENTRY_VERTICAL_JITTER, BACK_ENTRY_VERTICAL_JITTER),
-            playerPos.getZ() - BACK_ENTRY_DEPTH - Math.random() * 70
+            -BACK_ENTRY_DEPTH - Math.random() * 70
         );
     }
 

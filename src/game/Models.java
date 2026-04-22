@@ -13,6 +13,7 @@ public class Models
     public static Face[] deathStar;
     public static Face[][] asteroids;
     public static Face[] bulletModel;
+    public static Face[] enemyBulletModel;
 
     public static void init()
     {
@@ -20,6 +21,8 @@ public class Models
         tieFighter = AssetLoader.loadTieFighter();
         deathStar = AssetLoader.loadDeathStar();
         bulletModel = AssetLoader.loadBullet();
+        // Uses the player bullet mesh for now; swap this when an enemy bullet model is added.
+        enemyBulletModel = bulletModel;
 
         asteroids = new Face[3][];
         for (int i = 0; i < 3; i++)

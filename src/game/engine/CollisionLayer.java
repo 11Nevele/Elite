@@ -14,6 +14,7 @@ public class CollisionLayer
     public static final int ASTEROID = 1 << 2;
     public static final int BULLET   = 1 << 3;
     public static final int ENEMY_BACK_ENTRY = 1 << 4;
+    public static final int ENEMY_BULLET = 1 << 5;
 
     // Maps each layer bit to a bitmask of layers it collides with
     private static HashMap<Integer, Integer> collisionMatrix = new HashMap<>();
@@ -26,6 +27,7 @@ public class CollisionLayer
         setCollision(BULLET, ENEMY, true);
         setCollision(BULLET, ASTEROID, true);
         setCollision(BULLET, ENEMY_BACK_ENTRY, true);
+        setCollision(ENEMY_BULLET, PLAYER, true);
     }
 
     /**

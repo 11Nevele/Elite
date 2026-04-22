@@ -13,92 +13,29 @@ public class WeaponSystem
     private static final double BULLET_LIFETIME = 2.0;
     private static final double AIM_ASSIST_RANGE = 220;
     private static final double AIM_ASSIST_CONE_DOT = 0.94;
-    private static final double AIM_ASSIST_BLEND = 1.0;
+    private static final double AIM_ASSIST_BLEND = 0.35;
     private static final double AIM_ASSIST_DISTANCE_BONUS = 0.15;
+    private static final double AIM_PLANE_EPSILON = 0.0001;
 
     private double shootTimer = 0;
-    private final AimAssistDebugState debugState = new AimAssistDebugState();
-
-    public static class AimAssistDebugState
-    {
-        private boolean hasTarget;
-        private final Vector3 targetPosition = new Vector3();
-        private double targetDistance;
-        private double targetAlignment;
-        private double targetScore;
-
-        public boolean hasTarget()
-        {
-            return hasTarget;
-        }
-
-        public Vector3 getTargetPosition()
-        {
-            return targetPosition;
-        }
-
-        public double getTargetDistance()
-        {
-            return targetDistance;
-        }
-
-        public double getTargetAlignment()
-        {
-            return targetAlignment;
-        }
-
-        public double getTargetScore()
-        {
-            return targetScore;
-        }
-
-        private void clear()
-        {
-            hasTarget = false;
-            targetPosition.set(0, 0, 0);
-            targetDistance = 0;
-            targetAlignment = 0;
-            targetScore = 0;
-        }
-
-        private void set(Vector3 targetPosition, double targetDistance, double targetAlignment, double targetScore)
-        {
-            hasTarget = true;
-            this.targetPosition.set(targetPosition);
-            this.targetDistance = targetDistance;
-            this.targetAlignment = targetAlignment;
-            this.targetScore = targetScore;
-        }
-    }
-
-    private static class AimAssistCandidate
-    {
-        private final Vector3 targetPosition;
-        private final Vector3 targetDirection;
-        private final double targetDistance;
-        private final double targetAlignment;
-        private final double targetScore;
-
-        private AimAssistCandidate(Vector3 targetPosition, Vector3 targetDirection,
-                                   double targetDistance, double targetAlignment, double targetScore)
-        {
-            this.targetPosition = targetPosition;
-            this.targetDirection = targetDirection;
-            this.targetDistance = targetDistance;
-            this.targetAlignment = targetAlignment;
-            this.targetScore = targetScore;
-        }
-    }
+    private final Vector3 currentAimPointAtHoldDistance = new Vector3();
+    private boolean hasCurrentAimPointAtHoldDistance = false;
 
     public void reset()
     {
         shootTimer = 0;
-        debugState.clear();
+        hasCurrentAimPointAtHoldDistance = false;
+        currentAimPointAtHoldDistance.set(0, 0, 0);
     }
 
-    public AimAssistDebugState getAimAssistDebugState()
+    public boolean hasCurrentAimPointAtHoldDistance()
     {
-        return debugState;
+        return hasCurrentAimPointAtHoldDistance;
+    }
+
+    public Vector3 getCurrentAimPointAtHoldDistance()
+    {
+        return currentAimPointAtHoldDistance;
     }
 
     public void update(double delta, Vector3 position, Quaternion rotation)
@@ -108,34 +45,34 @@ public class WeaponSystem
         shootTimer -= delta;
 
         Vector3 defaultDirection = EngineUtil.quaternionToDirection(rotation).normalize();
-        AimAssistCandidate candidate = getAimAssistCandidate(position, defaultDirection);
-        updateDebugState(candidate);
+        updateAimPointAtHoldDistance(position, defaultDirection);
 
         if (Input.input.keys[KeyEvent.VK_SPACE] && shootTimer <= 0)
         {
-            shoot(position, defaultDirection, candidate);
+            shoot(position, defaultDirection);
             shootTimer = SHOOT_COOLDOWN;
         }
     }
 
-    private void shoot(Vector3 position, Vector3 defaultDirection, AimAssistCandidate candidate)
+    private void shoot(Vector3 position, Vector3 defaultDirection)
     {
-        Vector3 shotDirection = candidate == null
+        Vector3 assistedDirection = getAimAssistDirection(position, defaultDirection);
+        Vector3 shotDirection = assistedDirection == null
             ? defaultDirection
-            : blendDirections(defaultDirection, candidate.targetDirection, AIM_ASSIST_BLEND);
+            : blendDirections(defaultDirection, assistedDirection, AIM_ASSIST_BLEND);
 
         new Bullet(position, shotDirection.multiply(BULLET_SPEED), BULLET_LIFETIME);
         Audio.playLaser();
     }
 
-    private AimAssistCandidate getAimAssistCandidate(Vector3 origin, Vector3 defaultDirection)
+    private Vector3 getAimAssistDirection(Vector3 origin, Vector3 defaultDirection)
     {
         if (CollisionManager.instance == null)
         {
             return null;
         }
 
-        AimAssistCandidate bestCandidate = null;
+        Vector3 bestDirection = null;
         double bestScore = Double.NEGATIVE_INFINITY;
 
         for (Collidable collidable : CollisionManager.instance.getCollidables())
@@ -164,17 +101,11 @@ public class WeaponSystem
             if (score > bestScore)
             {
                 bestScore = score;
-                bestCandidate = new AimAssistCandidate(
-                    new Vector3(collidable.getPosition()),
-                    targetDirection,
-                    distance,
-                    alignment,
-                    score
-                );
+                bestDirection = targetDirection;
             }
         }
 
-        return bestCandidate;
+        return bestDirection;
     }
 
     private boolean isAimAssistTarget(Collidable collidable)
@@ -191,34 +122,25 @@ public class WeaponSystem
             .normalize();
     }
 
-    private void updateDebugState(AimAssistCandidate candidate)
+    private void updateAimPointAtHoldDistance(Vector3 origin, Vector3 direction)
     {
-        if (candidate == null)
+        double directionZ = direction.getZ();
+        if (Math.abs(directionZ) < AIM_PLANE_EPSILON)
         {
-            debugState.clear();
+            hasCurrentAimPointAtHoldDistance = false;
+            currentAimPointAtHoldDistance.set(0, 0, 0);
             return;
         }
 
-        debugState.set(
-            candidate.targetPosition,
-            candidate.targetDistance,
-            candidate.targetAlignment,
-            candidate.targetScore
-        );
-    }
+        double travel = (EnemySpawner.getHoldDistance() - origin.getZ()) / directionZ;
+        if (travel < 0)
+        {
+            hasCurrentAimPointAtHoldDistance = false;
+            currentAimPointAtHoldDistance.set(0, 0, 0);
+            return;
+        }
 
-    public static double getAimAssistRange()
-    {
-        return AIM_ASSIST_RANGE;
-    }
-
-    public static double getAimAssistConeDot()
-    {
-        return AIM_ASSIST_CONE_DOT;
-    }
-
-    public static double getAimAssistBlend()
-    {
-        return AIM_ASSIST_BLEND;
+        currentAimPointAtHoldDistance.set(origin.plus(direction.multiply(travel)));
+        hasCurrentAimPointAtHoldDistance = true;
     }
 }

@@ -31,10 +31,17 @@ public class Enemy extends CollidableRenderable
     private static final double EXIT_DESPAWN_SIDE_DISTANCE = 460;
     private static final double EXIT_DESPAWN_VERTICAL_DISTANCE = 320;
     private static final double MAX_LIFETIME = 18;
+    private static final double ENEMY_BULLET_SPEED = 20;
+    private static final double ENEMY_BULLET_LIFETIME = 10;
+    private static final double SHOT_MUZZLE_OFFSET = 0;
+    private static final double MIN_SHOT_INTERVAL = 1.6;
+    private static final double MAX_SHOT_INTERVAL = 2;
+    private static final double HORIZONTAL_AIM_OFFSET = 5;
+    private static final double VERTICAL_AIM_OFFSET = 5;
 
     private final EntryType entryType;
     private final Vector3 holdAnchor;
-    private final double holdDistanceFromPlayer;
+    private final double holdDepth;
     private final double entrySpeed;
     private final Vector3 holdDriftVelocity;
     private final Vector3 oscillationAxis;
@@ -48,6 +55,7 @@ public class Enemy extends CollidableRenderable
     private Vector3 currentVelocity;
     private double age = 0;
     private double phaseAge = 0;
+    private double shotTimer = 0;
 
     public Enemy(Face[] model, Vector3 spawnPos, Vector3 holdPos, EntryType entryType,
                  double entrySpeed, Vector3 holdDriftVelocity, Vector3 oscillationAxis,
@@ -58,7 +66,7 @@ public class Enemy extends CollidableRenderable
         collisionLayer = entryType == EntryType.BACK ? CollisionLayer.ENEMY_BACK_ENTRY : CollisionLayer.ENEMY;
         position = new Vector3(spawnPos);
         holdAnchor = new Vector3(holdPos);
-        holdDistanceFromPlayer = holdPos.getZ() - getPlayerPosition().getZ();
+        holdDepth = holdPos.getZ();
         this.entryType = entryType;
         this.entrySpeed = entrySpeed;
         this.holdDriftVelocity = new Vector3(holdDriftVelocity.getX(), holdDriftVelocity.getY(), 0);
@@ -143,6 +151,7 @@ public class Enemy extends CollidableRenderable
         holdAnchor.addXYZ(holdDriftVelocity.getX() * delta, holdDriftVelocity.getY() * delta, 0);
         position = getHoldPosition();
         currentVelocity = getHoldVelocity();
+        updateShooting(delta);
 
         if (phaseAge >= holdDuration)
         {
@@ -154,7 +163,7 @@ public class Enemy extends CollidableRenderable
     {
         refreshCollisionState();
         position.addXYZ(exitVelocity.getX() * delta, exitVelocity.getY() * delta, 0);
-        position.setZ(getPlayerPosition().getZ() + holdDistanceFromPlayer);
+        position.setZ(holdDepth);
         currentVelocity = new Vector3(exitVelocity);
     }
 
@@ -162,6 +171,7 @@ public class Enemy extends CollidableRenderable
     {
         phase = Phase.HOLDING;
         phaseAge = 0;
+        shotTimer = randomShotInterval();
         position = getHoldPosition();
         currentVelocity = getHoldVelocity();
     }
@@ -176,8 +186,7 @@ public class Enemy extends CollidableRenderable
 
     private Vector3 getHoldPosition()
     {
-        Vector3 holdPosition = new Vector3(holdAnchor.getX(), holdAnchor.getY(),
-            getPlayerPosition().getZ() + holdDistanceFromPlayer);
+        Vector3 holdPosition = new Vector3(holdAnchor.getX(), holdAnchor.getY(), holdDepth);
 
         if (oscillationAmplitude > 0 && oscillationFrequency != 0 && oscillationAxis.magnitude() > 0)
         {
@@ -221,6 +230,72 @@ public class Enemy extends CollidableRenderable
             return new Vector3();
         }
         return Camera.instance.position;
+    }
+
+    private void updateShooting(double delta)
+    {
+        if (GameState.gameState.isDead() || Camera.instance == null)
+        {
+            return;
+        }
+
+        shotTimer -= delta;
+        if (shotTimer > 0)
+        {
+            return;
+        }
+
+        fireAtPlayer();
+        shotTimer = randomShotInterval();
+    }
+
+    private void fireAtPlayer()
+    {
+        Vector3 playerPosition = getPlayerPosition();
+        /*System.out.println("Enemy shooting at player at position: " + playerPosition.getX()
+            + ", " + playerPosition.getY()
+            + ", " + playerPosition.getZ());*/
+        Vector3 toPlayer = playerPosition.minus(position);
+        if (toPlayer.magnitude() == 0)
+        {
+            return;
+        }
+
+        Vector3 aimPoint = getRandomizedAimPoint(playerPosition, toPlayer.normalize());
+        Vector3 shotDirection = aimPoint.minus(position).normalize();
+        Vector3 muzzlePosition = position.plus(shotDirection.multiply(SHOT_MUZZLE_OFFSET));
+        Bullet enemyBullet = new Bullet(
+            muzzlePosition,
+            shotDirection.multiply(ENEMY_BULLET_SPEED),
+            ENEMY_BULLET_LIFETIME,
+            Models.enemyBulletModel,
+            CollisionLayer.ENEMY_BULLET,
+            false
+        );
+        enemyBullet.scale = 0.55;
+    }
+
+    private double randomShotInterval()
+    {
+        return MIN_SHOT_INTERVAL + Math.random() * (MAX_SHOT_INTERVAL - MIN_SHOT_INTERVAL);
+    }
+
+    private Vector3 getRandomizedAimPoint(Vector3 playerPosition, Vector3 directionToPlayer)
+    {
+        Vector3 referenceUp = Math.abs(directionToPlayer.getY()) > 0.98
+            ? new Vector3(1, 0, 0)
+            : new Vector3(0, 1, 0);
+        Vector3 right = referenceUp.cross(directionToPlayer).normalize();
+        Vector3 up = directionToPlayer.cross(right).normalize();
+
+        return playerPosition
+            .plus(right.multiply(randomBetween(-HORIZONTAL_AIM_OFFSET, HORIZONTAL_AIM_OFFSET)))
+            .plus(up.multiply(randomBetween(-VERTICAL_AIM_OFFSET, VERTICAL_AIM_OFFSET)));
+    }
+
+    private double randomBetween(double min, double max)
+    {
+        return min + Math.random() * (max - min);
     }
 
     private void refreshCollisionState()
@@ -276,8 +351,8 @@ public class Enemy extends CollidableRenderable
         }
 
         Vector3 playerPos = getPlayerPosition();
-        double relativeX = Math.abs(position.getX() - playerPos.getX());
-        double relativeY = Math.abs(position.getY() - playerPos.getY());
+        double relativeX = Math.abs(position.getX());
+        double relativeY = Math.abs(position.getY());
         double relativeZ = position.getZ() - playerPos.getZ();
         double entryBehindDistance = entryType == EntryType.BACK
             ? ENTRY_DESPAWN_BEHIND_DISTANCE + 120

@@ -17,11 +17,7 @@ public class AsteroidManager extends GameObject
     public void update(double delta)
     {
         super.update(delta);
-        if (Camera.instance != null)
-        {
-            Vector3 playerPos = Camera.instance.position;
-            enemySpawner.update(delta, playerPos);
-        }
+        enemySpawner.update(delta);
     }
 
     /**
