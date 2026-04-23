@@ -21,7 +21,7 @@ public class EnemySpawner
     private static final double BASE_EXIT_SPEED = 220;
     private static final double EXIT_SPEED_VARIANCE = 40;
     private static final double EXIT_VERTICAL_SPEED = 18;
-    private static final double WAVE_INTERVAL = 5;
+    private static final double WAVE_INTERVAL = 7;
 
     private int enemyCount = 0;
     private int waveNumber = 0;

@@ -77,7 +77,7 @@ public class Enemy extends CollidableRenderable
         this.holdDuration = holdDuration;
         this.exitVelocity = new Vector3(exitVelocity.getX(), exitVelocity.getY(), 0);
         currentVelocity = initialEntryVelocity();
-        boundingRadius = 3;
+        boundingRadius = 6;
         scale = 1.5;
         rotation = rotationForMotion(currentVelocity);
     }
@@ -251,18 +251,9 @@ public class Enemy extends CollidableRenderable
 
     private void fireAtPlayer()
     {
-        Vector3 playerPosition = getPlayerPosition();
-        /*System.out.println("Enemy shooting at player at position: " + playerPosition.getX()
-            + ", " + playerPosition.getY()
-            + ", " + playerPosition.getZ());*/
-        Vector3 toPlayer = playerPosition.minus(position);
-        if (toPlayer.magnitude() == 0)
-        {
-            return;
-        }
 
-        Vector3 aimPoint = getRandomizedAimPoint(playerPosition, toPlayer.normalize());
-        Vector3 shotDirection = aimPoint.minus(position).normalize();
+
+        Vector3 shotDirection = new Vector3(0,0,-1);
         Vector3 muzzlePosition = position.plus(shotDirection.multiply(SHOT_MUZZLE_OFFSET));
         new Bullet(
             muzzlePosition,

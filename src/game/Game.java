@@ -188,8 +188,8 @@ public class Game extends JFrame implements Runnable
 
         // Reset systems
         GameState.gameState.reset();
-        CollisionManager.instance.clear();
-        AsteroidManager.instance.clear();
+        CollisionManager.instance = new CollisionManager();
+        AsteroidManager.instance = new AsteroidManager();
 
         createPlayer();
 

@@ -29,7 +29,7 @@ public class Bullet extends CollidableRenderable
         this.velocity = velocity;
         this.lifetime = lifetime;
         this.applyWorldScroll = applyWorldScroll;
-        boundingRadius = 5;
+        boundingRadius = 0.5;
         scale = 0.2;
         rotation = rotationForMotion(getWorldVelocity());
     }
