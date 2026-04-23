@@ -16,6 +16,7 @@ public class UI
     private static final int SCORE_MARGIN = 20;
     private static final int AIM_RETICLE_RADIUS = 10;
     private static final double SECTOR_LENGTH = 1000;
+    private static final String[] MENU_OPTIONS = {"Single Player", "Two Player"};
 
     private final int screenWidth;
     private final int screenHeight;
@@ -32,6 +33,12 @@ public class UI
 
     public void draw(Graphics g)
     {
+        if (GameState.gameState.getGameMode() == GameState.GameMode.MENU)
+        {
+            drawMainMenu(g);
+            return;
+        }
+
         if (GameState.gameState.isDead())
         {
             drawDeathScreen(g);
@@ -93,12 +100,18 @@ public class UI
 
     private void drawHoldDistanceAim(Graphics g)
     {
-        if (Camera.instance == null)
+        if (Camera.instance != null)
         {
-            return;
+            drawReticleForWeapons(g, Camera.instance.getWeapons(), new Color(255, 220, 120, 220));
         }
+        if (SecondPlayer.instance != null)
+        {
+            drawReticleForWeapons(g, SecondPlayer.instance.getWeapons(), new Color(120, 220, 255, 220));
+        }
+    }
 
-        WeaponSystem weapons = Camera.instance.getWeapons();
+    private void drawReticleForWeapons(Graphics g, WeaponSystem weapons, Color color)
+    {
         if (!weapons.hasCurrentAimPointAtHoldDistance())
         {
             return;
@@ -121,7 +134,7 @@ public class UI
         Stroke previousStroke = g2.getStroke();
         g2.setStroke(new BasicStroke(2f));
 
-        g2.setColor(new Color(255, 220, 120, 220));
+        g2.setColor(color);
         g2.drawOval(sx - AIM_RETICLE_RADIUS, sy - AIM_RETICLE_RADIUS,
             AIM_RETICLE_RADIUS * 2, AIM_RETICLE_RADIUS * 2);
         g2.drawLine(sx - AIM_RETICLE_RADIUS - 6, sy, sx - 4, sy);
@@ -184,7 +197,7 @@ public class UI
         textWidth = fm.stringWidth(waveMsg);
         g.drawString(waveMsg, centerX - textWidth / 2, centerY + 50);
 
-        String restartMsg = "Press R to restart";
+        String restartMsg = "Press R to return to menu";
         textWidth = fm.stringWidth(restartMsg);
         g.drawString(restartMsg, centerX - textWidth / 2, centerY + 90);
 
@@ -192,6 +205,41 @@ public class UI
         {
             GameState.gameState.setRestartGame(true);
         }
+    }
+
+    private void drawMainMenu(Graphics g)
+    {
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, screenWidth, screenHeight);
+
+        g.setFont(new Font("Monospaced", Font.BOLD, 64));
+        g.setColor(Color.WHITE);
+        String title = "ELITE";
+        FontMetrics fm = g.getFontMetrics();
+        g.drawString(title, centerX - fm.stringWidth(title) / 2, centerY - 140);
+
+        g.setFont(new Font("Monospaced", Font.PLAIN, 22));
+        String hint = "Select Mode: Up/Down + Enter";
+        fm = g.getFontMetrics();
+        g.drawString(hint, centerX - fm.stringWidth(hint) / 2, centerY - 80);
+
+        int selection = GameState.gameState.getMenuSelection();
+        g.setFont(new Font("Monospaced", Font.BOLD, 34));
+        for (int i = 0; i < MENU_OPTIONS.length; i++)
+        {
+            boolean selected = i == selection;
+            g.setColor(selected ? GameColors.LASER_RED : Color.LIGHT_GRAY);
+            String option = (selected ? "> " : "  ") + MENU_OPTIONS[i];
+            int y = centerY + i * 54;
+            fm = g.getFontMetrics();
+            g.drawString(option, centerX - fm.stringWidth(option) / 2, y);
+        }
+
+        g.setFont(new Font("Monospaced", Font.PLAIN, 18));
+        g.setColor(Color.GRAY);
+        String controls = "P1: WASD + Space    P2: Arrow Keys + Right Ctrl";
+        fm = g.getFontMetrics();
+        g.drawString(controls, centerX - fm.stringWidth(controls) / 2, centerY + 150);
     }
 
     public void drawBullet(Graphics g, Vector3 bulletPos, Quaternion cameraRot, Vector3 cameraPos)

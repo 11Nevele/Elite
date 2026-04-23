@@ -5,6 +5,13 @@ package game;
  */
 public class GameState
 {
+    public enum GameMode
+    {
+        MENU,
+        SINGLE_PLAYER,
+        TWO_PLAYER
+    }
+
     public static GameState gameState = new GameState();
 
     private boolean crashed;
@@ -15,6 +22,8 @@ public class GameState
     private double distanceTravelled;
     private int currentWave;
     private int enemiesDestroyed;
+    private GameMode gameMode;
+    private int menuSelection;
 
     public GameState()
     {
@@ -30,6 +39,8 @@ public class GameState
         distanceTravelled = 0;
         currentWave = 0;
         enemiesDestroyed = 0;
+        gameMode = GameMode.MENU;
+        menuSelection = 0;
     }
 
     public boolean isCrashed() { return crashed; }
@@ -60,6 +71,12 @@ public class GameState
 
     public int getEnemiesDestroyed() { return enemiesDestroyed; }
     public void recordEnemyDestroyed() { enemiesDestroyed++; }
+
+    public GameMode getGameMode() { return gameMode; }
+    public void setGameMode(GameMode gameMode) { this.gameMode = gameMode; }
+
+    public int getMenuSelection() { return menuSelection; }
+    public void setMenuSelection(int menuSelection) { this.menuSelection = menuSelection; }
 
     public boolean isDead()
     {

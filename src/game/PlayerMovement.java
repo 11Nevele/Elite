@@ -22,6 +22,11 @@ public class PlayerMovement
     private static final double MAX_PITCH_DEGREES = 30;
     private static final double TILT_RESPONSE = 15;
 
+    private final int[] leftKeys;
+    private final int[] rightKeys;
+    private final int[] upKeys;
+    private final int[] downKeys;
+
     private double horizontalInput = 0;
     private double verticalInput = 0;
     private double horizontalVelocity = 0;
@@ -29,6 +34,44 @@ public class PlayerMovement
     private double currentYawDegrees = 0;
     private double currentBankDegrees = 0;
     private double currentPitchDegrees = 0;
+
+    public PlayerMovement()
+    {
+        this(
+            new int[] {KeyEvent.VK_A, KeyEvent.VK_LEFT},
+            new int[] {KeyEvent.VK_D, KeyEvent.VK_RIGHT},
+            new int[] {KeyEvent.VK_W, KeyEvent.VK_UP},
+            new int[] {KeyEvent.VK_S, KeyEvent.VK_DOWN}
+        );
+    }
+
+    public PlayerMovement(int[] leftKeys, int[] rightKeys, int[] upKeys, int[] downKeys)
+    {
+        this.leftKeys = leftKeys;
+        this.rightKeys = rightKeys;
+        this.upKeys = upKeys;
+        this.downKeys = downKeys;
+    }
+
+    public static PlayerMovement createWasdOnly()
+    {
+        return new PlayerMovement(
+            new int[] {KeyEvent.VK_A},
+            new int[] {KeyEvent.VK_D},
+            new int[] {KeyEvent.VK_W},
+            new int[] {KeyEvent.VK_S}
+        );
+    }
+
+    public static PlayerMovement createArrowOnly()
+    {
+        return new PlayerMovement(
+            new int[] {KeyEvent.VK_LEFT},
+            new int[] {KeyEvent.VK_RIGHT},
+            new int[] {KeyEvent.VK_UP},
+            new int[] {KeyEvent.VK_DOWN}
+        );
+    }
 
     public void reset()
     {
@@ -113,11 +156,11 @@ public class PlayerMovement
     private double getHorizontalAxis()
     {
         double axis = 0;
-        if (Input.input.keys[KeyEvent.VK_A] || Input.input.keys[KeyEvent.VK_LEFT])
+        if (isAnyKeyDown(leftKeys))
         {
             axis -= 1;
         }
-        if (Input.input.keys[KeyEvent.VK_D] || Input.input.keys[KeyEvent.VK_RIGHT])
+        if (isAnyKeyDown(rightKeys))
         {
             axis += 1;
         }
@@ -127,15 +170,27 @@ public class PlayerMovement
     private double getVerticalAxis()
     {
         double axis = 0;
-        if (Input.input.keys[KeyEvent.VK_W] || Input.input.keys[KeyEvent.VK_UP])
+        if (isAnyKeyDown(upKeys))
         {
             axis -= 1;
         }
-        if (Input.input.keys[KeyEvent.VK_S] || Input.input.keys[KeyEvent.VK_DOWN])
+        if (isAnyKeyDown(downKeys))
         {
             axis += 1;
         }
         return axis;
+    }
+
+    private boolean isAnyKeyDown(int[] keyCodes)
+    {
+        for (int keyCode : keyCodes)
+        {
+            if (Input.input.isKeyDown(keyCode))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private double clamp(double value, double min, double max)

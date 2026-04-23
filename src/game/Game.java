@@ -29,6 +29,8 @@ public class Game extends JFrame implements Runnable
     private final BufferedImage renderBuffer;
     private volatile boolean running;
     private final int targetFPS = 60;
+    private static final int MENU_OPTION_SINGLE = 0;
+    private static final int MENU_OPTION_TWO = 1;
 
     public Game()
     {
@@ -70,11 +72,8 @@ public class Game extends JFrame implements Runnable
 
         // Create renderer at reduced resolution with direct pixel buffer access
         Renderer.renderer = new Renderer(renderBuffer.getGraphics(), RENDER_WIDTH, RENDER_HEIGHT, renderBuffer);
-        CollisionManager.instance = new CollisionManager();
-        AsteroidManager.instance = new AsteroidManager();
+        bootstrapWorldSystems();
         UI.ui = new UI(WIDTH, HEIGHT);
-
-        createPlayer();
 
         // Create background stars (2D points, not 3D meshes)
         stars = new Star[STAR_COUNT];
@@ -148,9 +147,16 @@ public class Game extends JFrame implements Runnable
             restartGame();
         }
 
+        updateMenuInput();
+
+        boolean inMenu = GameState.gameState.getGameMode() == GameState.GameMode.MENU;
+
         // Update all game objects
         long t0 = System.nanoTime();
-        GameObject.updateAll(delta);
+        if (!inMenu)
+        {
+            GameObject.updateAll(delta);
+        }
         long t1 = System.nanoTime();
         Profiler.instance.setUpdateTime(t1 - t0);
         Profiler.instance.setGameObjectCount(GameObject.gameObjects.size());
@@ -188,10 +194,9 @@ public class Game extends JFrame implements Runnable
 
         // Reset systems
         GameState.gameState.reset();
-        CollisionManager.instance = new CollisionManager();
-        AsteroidManager.instance = new AsteroidManager();
-
-        createPlayer();
+        Camera.instance = null;
+        SecondPlayer.instance = null;
+        bootstrapWorldSystems();
 
         // Recreate stars
         for (int i = 0; i < STAR_COUNT; i++)
@@ -208,7 +213,69 @@ public class Game extends JFrame implements Runnable
 
     private void createPlayer()
     {
-        Camera.instance = new Camera(new Vector3(0, 0, 0), new Quaternion());
+        Camera.instance = null;
+        SecondPlayer.instance = null;
+
+        GameState.GameMode mode = GameState.gameState.getGameMode();
+        if (mode == GameState.GameMode.SINGLE_PLAYER)
+        {
+            Camera.instance = new Camera(new Vector3(0, 0, 0), new Quaternion());
+        }
+        else if (mode == GameState.GameMode.TWO_PLAYER)
+        {
+            Camera.instance = new Camera(new Vector3(-6, 0, 0), new Quaternion(), true, KeyEvent.VK_SPACE);
+            SecondPlayer.instance = new SecondPlayer(new Vector3(6, 0, 0), new Quaternion());
+        }
+
+        activatePendingObjects();
+    }
+
+    private void updateMenuInput()
+    {
+        if (GameState.gameState.getGameMode() != GameState.GameMode.MENU)
+        {
+            return;
+        }
+
+        int selection = GameState.gameState.getMenuSelection();
+
+        if (Input.input.isKeyPressed(KeyEvent.VK_UP) || Input.input.isKeyPressed(KeyEvent.VK_W))
+        {
+            selection = Math.max(MENU_OPTION_SINGLE, selection - 1);
+        }
+        if (Input.input.isKeyPressed(KeyEvent.VK_DOWN) || Input.input.isKeyPressed(KeyEvent.VK_S))
+        {
+            selection = Math.min(MENU_OPTION_TWO, selection + 1);
+        }
+
+        GameState.gameState.setMenuSelection(selection);
+
+        if (Input.input.isKeyPressed(KeyEvent.VK_ENTER) || Input.input.isKeyPressed(KeyEvent.VK_SPACE))
+        {
+            GameState.GameMode selectedMode = selection == MENU_OPTION_TWO
+                ? GameState.GameMode.TWO_PLAYER
+                : GameState.GameMode.SINGLE_PLAYER;
+            GameState.gameState.setGameMode(selectedMode);
+            createPlayer();
+        }
+    }
+
+    private void bootstrapWorldSystems()
+    {
+        CollisionManager.instance = new CollisionManager();
+        AsteroidManager.instance = new AsteroidManager();
+        activatePendingObjects();
+    }
+
+    private void activatePendingObjects()
+    {
+        if (GameObject.newObjects.isEmpty())
+        {
+            return;
+        }
+
+        GameObject.gameObjects.addAll(GameObject.newObjects);
+        GameObject.newObjects.clear();
     }
 }
 

@@ -1,6 +1,7 @@
 package game;
 
 import game.engine.*;
+import java.awt.event.KeyEvent;
 
 /**
  * The player camera/ship. Coordinates movement, weapons, and camera view.
@@ -21,6 +22,11 @@ public class Camera extends CollidableRenderable
 
     public Camera(Vector3 pos, Quaternion rot)
     {
+        this(pos, rot, false, KeyEvent.VK_SPACE);
+    }
+
+    public Camera(Vector3 pos, Quaternion rot, boolean wasdOnlyMovement, int shootKey)
+    {
         super(Models.playerShip);
         instance = this;
         collisionLayer = CollisionLayer.PLAYER;
@@ -30,8 +36,8 @@ public class Camera extends CollidableRenderable
         rotation = rot.multiply(MODEL_UPRIGHT_ROTATION).normalize();
         railRotation = new Quaternion(rot);
 
-        movement = new PlayerMovement();
-        weapons = new WeaponSystem();
+        movement = wasdOnlyMovement ? PlayerMovement.createWasdOnly() : new PlayerMovement();
+        weapons = new WeaponSystem(shootKey);
         cameraController = new CameraController();
     }
 

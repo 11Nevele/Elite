@@ -124,6 +124,13 @@ public class Enemy extends CollidableRenderable
             AsteroidManager.instance.unregister(this);
             GameObject.destroyObject(this);
         }
+        else if (layer == CollisionLayer.PLAYER2)
+        {
+            Explosion.generateExplosion(position, 20);
+            GameState.gameState.setCrashed(true);
+            AsteroidManager.instance.unregister(this);
+            GameObject.destroyObject(this);
+        }
     }
 
     private void updateEntering(double delta)
@@ -225,16 +232,25 @@ public class Enemy extends CollidableRenderable
 
     private Vector3 getPlayerPosition()
     {
-        if (Camera.instance == null)
+        if (Camera.instance != null)
         {
-            return new Vector3();
+            return Camera.instance.position;
         }
-        return Camera.instance.position;
+        if (SecondPlayer.instance != null)
+        {
+            return SecondPlayer.instance.position;
+        }
+        return new Vector3();
+    }
+
+    private boolean hasAnyPlayer()
+    {
+        return Camera.instance != null || SecondPlayer.instance != null;
     }
 
     private void updateShooting(double delta)
     {
-        if (GameState.gameState.isDead() || Camera.instance == null)
+        if (GameState.gameState.isDead() || !hasAnyPlayer())
         {
             return;
         }

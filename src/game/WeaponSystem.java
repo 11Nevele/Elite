@@ -17,9 +17,20 @@ public class WeaponSystem
     private static final double AIM_ASSIST_DISTANCE_BONUS = 0.15;
     private static final double AIM_PLANE_EPSILON = 0.0001;
 
+    private final int shootKey;
     private double shootTimer = 0;
     private final Vector3 currentAimPointAtHoldDistance = new Vector3();
     private boolean hasCurrentAimPointAtHoldDistance = false;
+
+    public WeaponSystem()
+    {
+        this(KeyEvent.VK_SPACE);
+    }
+
+    public WeaponSystem(int shootKey)
+    {
+        this.shootKey = shootKey;
+    }
 
     public void reset()
     {
@@ -47,7 +58,7 @@ public class WeaponSystem
         Vector3 defaultDirection = EngineUtil.quaternionToDirection(rotation).normalize();
         updateAimPointAtHoldDistance(position, defaultDirection);
 
-        if (Input.input.keys[KeyEvent.VK_SPACE] && shootTimer <= 0)
+        if (Input.input.isKeyDown(shootKey) && shootTimer <= 0)
         {
             shoot(position, defaultDirection);
             shootTimer = SHOOT_COOLDOWN;
