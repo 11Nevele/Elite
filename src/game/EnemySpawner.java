@@ -8,7 +8,7 @@ import game.engine.*;
 public class EnemySpawner
 {
     private static final int MAX_ACTIVE_ENEMIES = 12;
-    private static final double HOLD_DISTANCE = 20;
+    private static final double HOLD_DISTANCE = 15;
     private static final double FRONT_ENTRY_DEPTH = 180;
     private static final double BACK_ENTRY_DEPTH = 170;
     private static final double FRONT_ENTRY_SIDE_OFFSET = 340;

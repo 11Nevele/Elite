@@ -77,8 +77,8 @@ public class Enemy extends CollidableRenderable
         this.holdDuration = holdDuration;
         this.exitVelocity = new Vector3(exitVelocity.getX(), exitVelocity.getY(), 0);
         currentVelocity = initialEntryVelocity();
-        boundingRadius = 5;
-        scale = 3;
+        boundingRadius = 3;
+        scale = 1.5;
         rotation = rotationForMotion(currentVelocity);
     }
 
@@ -264,7 +264,7 @@ public class Enemy extends CollidableRenderable
         Vector3 aimPoint = getRandomizedAimPoint(playerPosition, toPlayer.normalize());
         Vector3 shotDirection = aimPoint.minus(position).normalize();
         Vector3 muzzlePosition = position.plus(shotDirection.multiply(SHOT_MUZZLE_OFFSET));
-        Bullet enemyBullet = new Bullet(
+        new Bullet(
             muzzlePosition,
             shotDirection.multiply(ENEMY_BULLET_SPEED),
             ENEMY_BULLET_LIFETIME,
@@ -272,7 +272,6 @@ public class Enemy extends CollidableRenderable
             CollisionLayer.ENEMY_BULLET,
             false
         );
-        enemyBullet.scale = 0.55;
     }
 
     private double randomShotInterval()

@@ -7,7 +7,7 @@ import game.engine.*;
  */
 public class CameraController
 {
-    private static final double CAMERA_BEHIND_OFFSET = 80;
+    private static final double CAMERA_BEHIND_OFFSET = 20;
     private static final double CAMERA_UP_OFFSET = 0;
     private static final double MAX_CAMERA_X = 0;
     private static final double MIN_CAMERA_Y = -0;

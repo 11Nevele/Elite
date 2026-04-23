@@ -24,7 +24,8 @@ public class Camera extends CollidableRenderable
         super(Models.playerShip);
         instance = this;
         collisionLayer = CollisionLayer.PLAYER;
-        boundingRadius = 5;
+        boundingRadius = 1;
+        scale = 0.2;
         position = new Vector3(pos);
         rotation = rot.multiply(MODEL_UPRIGHT_ROTATION).normalize();
         railRotation = new Quaternion(rot);

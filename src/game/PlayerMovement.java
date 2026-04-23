@@ -8,15 +8,15 @@ import java.awt.event.KeyEvent;
  */
 public class PlayerMovement
 {
-    private static final double HORIZONTAL_ACCELERATION = 260;
-    private static final double VERTICAL_ACCELERATION = 220;
-    private static final double HORIZONTAL_DRAG = 120;
-    private static final double VERTICAL_DRAG = 100;
-    private static final double MAX_HORIZONTAL_SPEED = 85;
-    private static final double MAX_VERTICAL_SPEED = 60;
-    private static final double MAX_X = 80;
-    private static final double MIN_Y = -40;
-    private static final double MAX_Y = 40;
+    private static final double HORIZONTAL_ACCELERATION = 120;
+    private static final double VERTICAL_ACCELERATION = 78;
+    private static final double HORIZONTAL_DRAG = 80;
+    private static final double VERTICAL_DRAG = 52;
+    private static final double MAX_HORIZONTAL_SPEED = 40;
+    private static final double MAX_VERTICAL_SPEED = 26;
+    private static final double MAX_X = 20;
+    private static final double MIN_Y = -13;
+    private static final double MAX_Y = 13;
     private static final double MAX_YAW_DEGREES = 18;
     private static final double MAX_BANK_DEGREES = 30;
     private static final double MAX_PITCH_DEGREES = 30;
