@@ -34,8 +34,8 @@ public class Enemy extends CollidableRenderable
     private static final double ENEMY_BULLET_SPEED = 20;
     private static final double ENEMY_BULLET_LIFETIME = 10;
     private static final double SHOT_MUZZLE_OFFSET = 0;
-    private static final double MIN_SHOT_INTERVAL = 1.6;
-    private static final double MAX_SHOT_INTERVAL = 2;
+    private static final double MIN_SHOT_INTERVAL = 3;
+    private static final double MAX_SHOT_INTERVAL = 6;
     private static final double HORIZONTAL_AIM_OFFSET = 5;
     private static final double VERTICAL_AIM_OFFSET = 5;
 
@@ -243,6 +243,18 @@ public class Enemy extends CollidableRenderable
         return new Vector3();
     }
 
+    private Vector3 getRandomTargetPlayerPosition()
+    {
+        if (Camera.instance != null && SecondPlayer.instance != null)
+        {
+            return Math.random() < 0.5
+                ? Camera.instance.position
+                : SecondPlayer.instance.position;
+        }
+
+        return getPlayerPosition();
+    }
+
     private boolean hasAnyPlayer()
     {
         return Camera.instance != null || SecondPlayer.instance != null;
@@ -267,9 +279,23 @@ public class Enemy extends CollidableRenderable
 
     private void fireAtPlayer()
     {
+        Vector3 playerPosition = getRandomTargetPlayerPosition();
+        Vector3 directionToPlayer = playerPosition.minus(position);
+        Vector3 shotDirection;
 
+        if (directionToPlayer.magnitude() == 0)
+        {
+            shotDirection = new Vector3(0, 0, -1);
+        }
+        else
+        {
+            Vector3 aimPoint = getRandomizedAimPoint(playerPosition, directionToPlayer.normalize());
+            Vector3 aimDirection = aimPoint.minus(position);
+            shotDirection = aimDirection.magnitude() == 0
+                ? directionToPlayer.normalize()
+                : aimDirection.normalize();
+        }
 
-        Vector3 shotDirection = new Vector3(0,0,-1);
         Vector3 muzzlePosition = position.plus(shotDirection.multiply(SHOT_MUZZLE_OFFSET));
         new Bullet(
             muzzlePosition,

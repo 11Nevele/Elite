@@ -18,18 +18,25 @@ public class WeaponSystem
     private static final double AIM_PLANE_EPSILON = 0.0001;
 
     private final int shootKey;
+    private final Face[] bulletModel;
     private double shootTimer = 0;
     private final Vector3 currentAimPointAtHoldDistance = new Vector3();
     private boolean hasCurrentAimPointAtHoldDistance = false;
 
     public WeaponSystem()
     {
-        this(KeyEvent.VK_SPACE);
+        this(KeyEvent.VK_SPACE, Models.bulletModel);
     }
 
     public WeaponSystem(int shootKey)
     {
+        this(shootKey, Models.bulletModel);
+    }
+
+    public WeaponSystem(int shootKey, Face[] bulletModel)
+    {
         this.shootKey = shootKey;
+        this.bulletModel = bulletModel;
     }
 
     public void reset()
@@ -72,7 +79,13 @@ public class WeaponSystem
             ? defaultDirection
             : blendDirections(defaultDirection, assistedDirection, AIM_ASSIST_BLEND);
 
-        new Bullet(position, shotDirection.multiply(BULLET_SPEED), BULLET_LIFETIME);
+        new Bullet(
+            position,
+            shotDirection.multiply(BULLET_SPEED),
+            BULLET_LIFETIME,
+            bulletModel,
+            CollisionLayer.BULLET
+        );
         Audio.playLaser();
     }
 

@@ -18,7 +18,7 @@ public class SecondPlayer extends CollidableRenderable
 
     public SecondPlayer(Vector3 pos, Quaternion rot)
     {
-        super(Models.playerShip);
+        super(Models.player2Ship);
         instance = this;
         collisionLayer = CollisionLayer.PLAYER2;
         boundingRadius = 1;
@@ -27,7 +27,7 @@ public class SecondPlayer extends CollidableRenderable
         rotation = rot.multiply(MODEL_UPRIGHT_ROTATION).normalize();
 
         movement = PlayerMovement.createArrowOnly();
-        weapons = new WeaponSystem(KeyEvent.VK_CONTROL);
+        weapons = new WeaponSystem(KeyEvent.VK_CONTROL, Models.blueBulletModel);
     }
 
     @Override

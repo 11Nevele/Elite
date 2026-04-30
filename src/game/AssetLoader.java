@@ -17,6 +17,11 @@ public class AssetLoader
         return ObjReader.readObj(MODEL_DIR + "Plane.obj");
     }
 
+    public static Face[] loadPlayer2Ship()
+    {
+        return ObjReader.readObj(MODEL_DIR + "BluePlane.obj");
+    }
+
     public static Face[] loadTieFighter()
     {
         return ObjReader.readObj(MODEL_DIR + "TIE.obj");
@@ -30,6 +35,16 @@ public class AssetLoader
     public static Face[] loadBullet()
     {
         return ObjReader.readObj(MODEL_DIR + "bullet.obj");
+    }
+
+    public static Face[] loadBlueBullet()
+    {
+        return ObjReader.readObj(MODEL_DIR + "BlueBullet.obj");
+    }
+
+    public static Face[] loadGreenBullet()
+    {
+        return ObjReader.readObj(MODEL_DIR + "GreenBullet.obj");
     }
 
     public static Face[] loadAsteroid(int variant)
