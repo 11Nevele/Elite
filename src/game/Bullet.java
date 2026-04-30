@@ -10,18 +10,24 @@ public class Bullet extends CollidableRenderable
     private Vector3 velocity;
     private double lifetime;
     private final boolean applyWorldScroll;
+    private final int ownerLayer;
 
     public Bullet(Vector3 pos, Vector3 velocity, double lifetime)
     {
-        this(pos, velocity, lifetime, Models.bulletModel, CollisionLayer.BULLET, true);
+        this(pos, velocity, lifetime, Models.bulletModel, CollisionLayer.BULLET, CollisionLayer.NONE, true);
     }
 
     public Bullet(Vector3 pos, Vector3 velocity, double lifetime, Face[] model, int layer)
     {
-        this(pos, velocity, lifetime, model, layer, true);
+        this(pos, velocity, lifetime, model, layer, CollisionLayer.NONE, true);
     }
 
     public Bullet(Vector3 pos, Vector3 velocity, double lifetime, Face[] model, int layer, boolean applyWorldScroll)
+    {
+        this(pos, velocity, lifetime, model, layer, CollisionLayer.NONE, applyWorldScroll);
+    }
+
+    public Bullet(Vector3 pos, Vector3 velocity, double lifetime, Face[] model, int layer, int ownerLayer, boolean applyWorldScroll)
     {
         super(model);
         collisionLayer = layer;
@@ -29,6 +35,7 @@ public class Bullet extends CollidableRenderable
         this.velocity = velocity;
         this.lifetime = lifetime;
         this.applyWorldScroll = applyWorldScroll;
+        this.ownerLayer = ownerLayer;
         boundingRadius = 0.5;
         scale = 0.2;
         rotation = rotationForMotion(getWorldVelocity());
@@ -69,6 +76,11 @@ public class Bullet extends CollidableRenderable
         double pitchDegrees = -Math.toDegrees(Math.atan2(direction.getY(), Math.max(0.001, horizontalLength)));
 
         return Quaternion.yaw(yawDegrees).multiply(Quaternion.pitch(pitchDegrees));
+    }
+
+    public int getOwnerLayer()
+    {
+        return ownerLayer;
     }
 
     @Override

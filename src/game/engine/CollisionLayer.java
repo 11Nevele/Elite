@@ -27,6 +27,7 @@ public class CollisionLayer
         setCollision(PLAYER, ASTEROID, true);
         setCollision(PLAYER2, ENEMY, true);
         setCollision(PLAYER2, ASTEROID, true);
+        setCollision(PLAYER, PLAYER2, true);
         setCollision(BULLET, ENEMY, true);
         setCollision(BULLET, ASTEROID, true);
         setCollision(BULLET, ENEMY_BACK_ENTRY, true);

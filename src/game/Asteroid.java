@@ -51,7 +51,21 @@ public class Asteroid extends CollidableRenderable
         if (other.getCollisionLayer() == CollisionLayer.BULLET)
         {
             Explosion.generateExplosion(position, 10);
-            GameState.gameState.addScore(100);
+            if (GameState.gameState.isCompetitiveMode() && other instanceof Bullet bullet)
+            {
+                if (bullet.getOwnerLayer() == CollisionLayer.PLAYER)
+                {
+                    GameState.gameState.addScoreP1(100);
+                }
+                else if (bullet.getOwnerLayer() == CollisionLayer.PLAYER2)
+                {
+                    GameState.gameState.addScoreP2(100);
+                }
+            }
+            else
+            {
+                GameState.gameState.addScore(100);
+            }
             AsteroidManager.instance.unregister(this);
             GameObject.destroyObject(this);
         }

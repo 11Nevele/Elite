@@ -16,7 +16,7 @@ public class UI
     private static final int SCORE_MARGIN = 20;
     private static final int AIM_RETICLE_RADIUS = 10;
     private static final double SECTOR_LENGTH = 1000;
-    private static final String[] MENU_OPTIONS = {"Single Player", "Two Player"};
+    private static final String[] MENU_OPTIONS = {"Single Player", "Two Player", "Competitive"};
 
     private final int screenWidth;
     private final int screenHeight;
@@ -53,10 +53,11 @@ public class UI
 
     private void drawStatusPanel(Graphics g)
     {
+        boolean competitive = GameState.gameState.isCompetitiveMode();
         int x = BAR_MARGIN;
         int y = BAR_MARGIN;
-        int width = 240;
-        int height = 84;
+        int width = 280;
+        int height = competitive ? 136 : 84;
 
         g.setColor(new Color(0, 0, 0, 150));
         g.fillRoundRect(x, y, width, height, 12, 12);
@@ -67,6 +68,13 @@ public class UI
         g.drawString("WAVE " + Math.max(1, GameState.gameState.getCurrentWave()), x + 16, y + 28);
         g.drawString("KILLS " + GameState.gameState.getEnemiesDestroyed(), x + 16, y + 52);
         g.drawString("DIST " + (int) GameState.gameState.getDistanceTravelled(), x + 16, y + 76);
+
+        if (competitive)
+        {
+            int secondsLeft = (int) Math.ceil(GameState.gameState.getMatchTimeRemainingSec());
+            g.drawString("TIME " + secondsLeft, x + 16, y + 100);
+            g.drawString("P1 " + GameState.gameState.getScoreP1() + "   P2 " + GameState.gameState.getScoreP2(), x + 16, y + 124);
+        }
     }
 
     private void drawSectorBar(Graphics g)
@@ -91,6 +99,17 @@ public class UI
     {
         g.setColor(Color.WHITE);
         g.setFont(new Font("Monospaced", Font.BOLD, 20));
+
+        if (GameState.gameState.isCompetitiveMode())
+        {
+            String scoreText = "P1: " + GameState.gameState.getScoreP1() + "  P2: " + GameState.gameState.getScoreP2();
+            g.drawString(scoreText, screenWidth - SCORE_MARGIN - 320, SCORE_MARGIN + 20);
+
+            String highScoreText = "HIGH: " + GameState.gameState.getHighScore();
+            g.drawString(highScoreText, screenWidth - SCORE_MARGIN - 320, SCORE_MARGIN + 45);
+            return;
+        }
+
         String scoreText = "SCORE: " + GameState.gameState.getScore();
         g.drawString(scoreText, screenWidth - SCORE_MARGIN - 200, SCORE_MARGIN + 20);
 
@@ -178,26 +197,57 @@ public class UI
         g.setColor(new Color(0, 0, 0, 150));
         g.fillRect(0, 0, screenWidth, screenHeight);
 
-        g.setFont(new Font("Monospaced", Font.BOLD, 48));
-        g.setColor(Color.RED);
+        FontMetrics fm;
+        int textWidth;
 
-        String deathMsg = GameState.gameState.isCrashed() ? "DESTROYED" : "MISSION FAILED";
-        FontMetrics fm = g.getFontMetrics();
-        int textWidth = fm.stringWidth(deathMsg);
-        g.drawString(deathMsg, centerX - textWidth / 2, centerY - 30);
+        if (GameState.gameState.isCompetitiveMode() && GameState.gameState.getWinner() != GameState.Winner.NONE)
+        {
+            g.setFont(new Font("Monospaced", Font.BOLD, 48));
+            g.setColor(Color.RED);
+            String winnerMsg = switch (GameState.gameState.getWinner())
+            {
+                case PLAYER1 -> "PLAYER 1 WINS";
+                case PLAYER2 -> "PLAYER 2 WINS";
+                case DRAW -> "DRAW";
+                default -> "MATCH OVER";
+            };
+            fm = g.getFontMetrics();
+            textWidth = fm.stringWidth(winnerMsg);
+            g.drawString(winnerMsg, centerX - textWidth / 2, centerY - 40);
+
+            g.setFont(new Font("Monospaced", Font.PLAIN, 24));
+            g.setColor(Color.WHITE);
+            String scoreMsg = "P1: " + GameState.gameState.getScoreP1() + "    P2: " + GameState.gameState.getScoreP2();
+            fm = g.getFontMetrics();
+            textWidth = fm.stringWidth(scoreMsg);
+            g.drawString(scoreMsg, centerX - textWidth / 2, centerY + 10);
+        }
+        else
+        {
+            g.setFont(new Font("Monospaced", Font.BOLD, 48));
+            g.setColor(Color.RED);
+
+            String deathMsg = GameState.gameState.isCrashed() ? "DESTROYED" : "MISSION FAILED";
+            fm = g.getFontMetrics();
+            textWidth = fm.stringWidth(deathMsg);
+            g.drawString(deathMsg, centerX - textWidth / 2, centerY - 30);
+
+            g.setFont(new Font("Monospaced", Font.PLAIN, 24));
+            g.setColor(Color.WHITE);
+            String scoreMsg = "Score: " + GameState.gameState.getScore();
+            fm = g.getFontMetrics();
+            textWidth = fm.stringWidth(scoreMsg);
+            g.drawString(scoreMsg, centerX - textWidth / 2, centerY + 20);
+
+            String waveMsg = "Wave: " + Math.max(1, GameState.gameState.getCurrentWave());
+            textWidth = fm.stringWidth(waveMsg);
+            g.drawString(waveMsg, centerX - textWidth / 2, centerY + 50);
+        }
 
         g.setFont(new Font("Monospaced", Font.PLAIN, 24));
         g.setColor(Color.WHITE);
-        String scoreMsg = "Score: " + GameState.gameState.getScore();
-        fm = g.getFontMetrics();
-        textWidth = fm.stringWidth(scoreMsg);
-        g.drawString(scoreMsg, centerX - textWidth / 2, centerY + 20);
-
-        String waveMsg = "Wave: " + Math.max(1, GameState.gameState.getCurrentWave());
-        textWidth = fm.stringWidth(waveMsg);
-        g.drawString(waveMsg, centerX - textWidth / 2, centerY + 50);
-
         String restartMsg = "Press R to return to menu";
+        fm = g.getFontMetrics();
         textWidth = fm.stringWidth(restartMsg);
         g.drawString(restartMsg, centerX - textWidth / 2, centerY + 90);
 

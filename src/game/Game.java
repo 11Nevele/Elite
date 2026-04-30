@@ -31,6 +31,7 @@ public class Game extends JFrame implements Runnable
     private final int targetFPS = 60;
     private static final int MENU_OPTION_SINGLE = 0;
     private static final int MENU_OPTION_TWO = 1;
+    private static final int MENU_OPTION_COMPETITIVE = 2;
 
     public Game()
     {
@@ -151,6 +152,11 @@ public class Game extends JFrame implements Runnable
 
         boolean inMenu = GameState.gameState.getGameMode() == GameState.GameMode.MENU;
 
+        if (!inMenu)
+        {
+            GameState.gameState.updateCompetitiveTimer(delta);
+        }
+
         // Update all game objects
         long t0 = System.nanoTime();
         if (!inMenu)
@@ -221,7 +227,7 @@ public class Game extends JFrame implements Runnable
         {
             Camera.instance = new Camera(new Vector3(0, 0, 0), new Quaternion());
         }
-        else if (mode == GameState.GameMode.TWO_PLAYER)
+        else if (mode == GameState.GameMode.TWO_PLAYER || mode == GameState.GameMode.COMPETITIVE)
         {
             Camera.instance = new Camera(new Vector3(-6, 0, 0), new Quaternion(), true, KeyEvent.VK_SPACE);
             SecondPlayer.instance = new SecondPlayer(new Vector3(6, 0, 0), new Quaternion());
@@ -245,16 +251,27 @@ public class Game extends JFrame implements Runnable
         }
         if (Input.input.isKeyPressed(KeyEvent.VK_DOWN) || Input.input.isKeyPressed(KeyEvent.VK_S))
         {
-            selection = Math.min(MENU_OPTION_TWO, selection + 1);
+            selection = Math.min(MENU_OPTION_COMPETITIVE, selection + 1);
         }
 
         GameState.gameState.setMenuSelection(selection);
 
         if (Input.input.isKeyPressed(KeyEvent.VK_ENTER) || Input.input.isKeyPressed(KeyEvent.VK_SPACE))
         {
-            GameState.GameMode selectedMode = selection == MENU_OPTION_TWO
-                ? GameState.GameMode.TWO_PLAYER
-                : GameState.GameMode.SINGLE_PLAYER;
+            GameState.GameMode selectedMode;
+            if (selection == MENU_OPTION_TWO)
+            {
+                selectedMode = GameState.GameMode.TWO_PLAYER;
+            }
+            else if (selection == MENU_OPTION_COMPETITIVE)
+            {
+                selectedMode = GameState.GameMode.COMPETITIVE;
+            }
+            else
+            {
+                selectedMode = GameState.GameMode.SINGLE_PLAYER;
+            }
+
             GameState.gameState.setGameMode(selectedMode);
             createPlayer();
         }

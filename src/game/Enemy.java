@@ -112,7 +112,21 @@ public class Enemy extends CollidableRenderable
         if (layer == CollisionLayer.BULLET)
         {
             Explosion.generateExplosion(position, 15);
-            GameState.gameState.addScore(250);
+            if (GameState.gameState.isCompetitiveMode() && other instanceof Bullet bullet)
+            {
+                if (bullet.getOwnerLayer() == CollisionLayer.PLAYER)
+                {
+                    GameState.gameState.addScoreP1(250);
+                }
+                else if (bullet.getOwnerLayer() == CollisionLayer.PLAYER2)
+                {
+                    GameState.gameState.addScoreP2(250);
+                }
+            }
+            else
+            {
+                GameState.gameState.addScore(250);
+            }
             GameState.gameState.recordEnemyDestroyed();
             AsteroidManager.instance.unregister(this);
             GameObject.destroyObject(this);
@@ -120,14 +134,28 @@ public class Enemy extends CollidableRenderable
         else if (layer == CollisionLayer.PLAYER)
         {
             Explosion.generateExplosion(position, 20);
-            GameState.gameState.setCrashed(true);
+            if (GameState.gameState.isCompetitiveMode())
+            {
+                GameState.gameState.markPlayerDead(CollisionLayer.PLAYER);
+            }
+            else
+            {
+                GameState.gameState.setCrashed(true);
+            }
             AsteroidManager.instance.unregister(this);
             GameObject.destroyObject(this);
         }
         else if (layer == CollisionLayer.PLAYER2)
         {
             Explosion.generateExplosion(position, 20);
-            GameState.gameState.setCrashed(true);
+            if (GameState.gameState.isCompetitiveMode())
+            {
+                GameState.gameState.markPlayerDead(CollisionLayer.PLAYER2);
+            }
+            else
+            {
+                GameState.gameState.setCrashed(true);
+            }
             AsteroidManager.instance.unregister(this);
             GameObject.destroyObject(this);
         }

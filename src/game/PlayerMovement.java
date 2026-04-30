@@ -84,6 +84,12 @@ public class PlayerMovement
         currentPitchDegrees = 0;
     }
 
+    public void resetVelocity()
+    {
+        horizontalVelocity = 0;
+        verticalVelocity = 0;
+    }
+
     /**
      * Returns the bounded dodge movement to apply this frame.
      */

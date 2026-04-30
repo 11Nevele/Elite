@@ -19,24 +19,31 @@ public class WeaponSystem
 
     private final int shootKey;
     private final Face[] bulletModel;
+    private final int ownerLayer;
     private double shootTimer = 0;
     private final Vector3 currentAimPointAtHoldDistance = new Vector3();
     private boolean hasCurrentAimPointAtHoldDistance = false;
 
     public WeaponSystem()
     {
-        this(KeyEvent.VK_SPACE, Models.bulletModel);
+        this(KeyEvent.VK_SPACE, Models.bulletModel, CollisionLayer.PLAYER);
     }
 
     public WeaponSystem(int shootKey)
     {
-        this(shootKey, Models.bulletModel);
+        this(shootKey, Models.bulletModel, CollisionLayer.PLAYER);
     }
 
     public WeaponSystem(int shootKey, Face[] bulletModel)
     {
+        this(shootKey, bulletModel, CollisionLayer.PLAYER);
+    }
+
+    public WeaponSystem(int shootKey, Face[] bulletModel, int ownerLayer)
+    {
         this.shootKey = shootKey;
         this.bulletModel = bulletModel;
+        this.ownerLayer = ownerLayer;
     }
 
     public void reset()
@@ -84,7 +91,9 @@ public class WeaponSystem
             shotDirection.multiply(BULLET_SPEED),
             BULLET_LIFETIME,
             bulletModel,
-            CollisionLayer.BULLET
+            CollisionLayer.BULLET,
+            ownerLayer,
+            true
         );
         Audio.playLaser();
     }
