@@ -101,6 +101,7 @@ public class Camera extends CollidableRenderable
             if (!GameState.gameState.isDead())
             {
                 Explosion.generateExplosion(position, 20);
+                Audio.playExplosion();
                 if (GameState.gameState.isCompetitiveMode())
                 {
                     GameState.gameState.markPlayerDead(CollisionLayer.PLAYER);

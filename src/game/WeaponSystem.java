@@ -95,7 +95,14 @@ public class WeaponSystem
             ownerLayer,
             true
         );
-        Audio.playLaser();
+        if (ownerLayer == CollisionLayer.PLAYER2)
+        {
+            Audio.playPlayer2Laser();
+        }
+        else
+        {
+            Audio.playPlayer1Laser();
+        }
     }
 
     private Vector3 getAimAssistDirection(Vector3 origin, Vector3 defaultDirection)
