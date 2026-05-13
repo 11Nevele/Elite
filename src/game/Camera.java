@@ -29,7 +29,7 @@ public class Camera extends CollidableRenderable
 
     public Camera(Vector3 pos, Quaternion rot)
     {
-        this(pos, rot, false, KeyEvent.VK_SPACE);
+        this(pos, rot, false, KeyEvent.VK_E);
     }
 
     public Camera(Vector3 pos, Quaternion rot, boolean wasdOnlyMovement, int shootKey)

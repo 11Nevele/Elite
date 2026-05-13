@@ -17,6 +17,7 @@ C:\11\SAC\CS\Java\Elite\Elite\src\game\Models.java
 C:\11\SAC\CS\Java\Elite\Elite\src\game\PlayerMovement.java
 C:\11\SAC\CS\Java\Elite\Elite\src\game\ProceduralMeshes.java
 C:\11\SAC\CS\Java\Elite\Elite\src\game\Profiler.java
+C:\11\SAC\CS\Java\Elite\Elite\src\game\SecondPlayer.java
 C:\11\SAC\CS\Java\Elite\Elite\src\game\Star.java
 C:\11\SAC\CS\Java\Elite\Elite\src\game\UI.java
 C:\11\SAC\CS\Java\Elite\Elite\src\game\WeaponSystem.java

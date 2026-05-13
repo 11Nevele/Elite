@@ -229,7 +229,7 @@ public class Game extends JFrame implements Runnable
         }
         else if (mode == GameState.GameMode.TWO_PLAYER || mode == GameState.GameMode.COMPETITIVE)
         {
-            Camera.instance = new Camera(new Vector3(-6, 0, 0), new Quaternion(), true, KeyEvent.VK_SPACE);
+            Camera.instance = new Camera(new Vector3(-6, 0, 0), new Quaternion(), true, KeyEvent.VK_E);
             SecondPlayer.instance = new SecondPlayer(new Vector3(6, 0, 0), new Quaternion());
         }
 

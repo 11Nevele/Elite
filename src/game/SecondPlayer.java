@@ -34,7 +34,7 @@ public class SecondPlayer extends CollidableRenderable
         rotation = rot.multiply(MODEL_UPRIGHT_ROTATION).normalize();
 
         movement = PlayerMovement.createArrowOnly();
-        weapons = new WeaponSystem(KeyEvent.VK_CONTROL, Models.blueBulletModel, CollisionLayer.PLAYER2);
+        weapons = new WeaponSystem(KeyEvent.VK_I, Models.blueBulletModel, CollisionLayer.PLAYER2);
     }
 
     @Override
