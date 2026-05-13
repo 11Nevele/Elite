@@ -41,4 +41,16 @@ public class Input
     {
         return keyCode >= 0 && keyCode < keys.length && keys[keyCode] && !prevKeys[keyCode];
     }
+
+    public boolean isAnyKeyPressed()
+    {
+        for (int keyCode = 0; keyCode < keys.length; keyCode++)
+        {
+            if (keys[keyCode] && !prevKeys[keyCode])
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 }

@@ -246,12 +246,12 @@ public class UI
 
         g.setFont(new Font("Monospaced", Font.PLAIN, 24));
         g.setColor(Color.WHITE);
-        String restartMsg = "Press R to return to menu";
+        String restartMsg = "Press any button to return to menu";
         fm = g.getFontMetrics();
         textWidth = fm.stringWidth(restartMsg);
         g.drawString(restartMsg, centerX - textWidth / 2, centerY + 90);
 
-        if (Input.input.keys[java.awt.event.KeyEvent.VK_R])
+        if (Input.input.isAnyKeyPressed())
         {
             GameState.gameState.setRestartGame(true);
         }
@@ -269,7 +269,7 @@ public class UI
         g.drawString(title, centerX - fm.stringWidth(title) / 2, centerY - 140);
 
         g.setFont(new Font("Monospaced", Font.PLAIN, 22));
-        String hint = "Select Mode: Up/Down + Enter";
+        String hint = "Select Mode: Up/Down + E/I";
         fm = g.getFontMetrics();
         g.drawString(hint, centerX - fm.stringWidth(hint) / 2, centerY - 80);
 

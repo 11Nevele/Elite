@@ -20,6 +20,7 @@ public class Audio
     private static Clip[] explosionClips;
     private static int explosionIndex;
     private static Clip ambientClip;
+    private static Clip battleMusicClip;
     private static boolean initialized = false;
 
     public static void init()
@@ -30,6 +31,7 @@ public class Audio
         player2LaserClips = loadClipPoolSafely(soundDir + "Hyper 4.wav", LASER_VOICE_COUNT);
         explosionClips = loadClipPoolSafely(soundDir + "explosion.wav", EXPLOSION_VOICE_COUNT);
         ambientClip = loadClipSafely(soundDir + "Ambient.wav");
+        battleMusicClip = loadClipSafely(soundDir + "spacebattle.wav");
         initialized = true;
     }
 
@@ -117,6 +119,20 @@ public class Audio
     public static void stopAmbient()
     {
         if (ambientClip != null) ambientClip.stop();
+    }
+
+    public static void playBattleMusic()
+    {
+        if (battleMusicClip != null)
+        {
+            battleMusicClip.setFramePosition(0);
+            battleMusicClip.loop(Clip.LOOP_CONTINUOUSLY);
+        }
+    }
+
+    public static void stopBattleMusic()
+    {
+        if (battleMusicClip != null) battleMusicClip.stop();
     }
 
     private static int playFromPool(Clip[] clips, int currentIndex)

@@ -14,12 +14,12 @@ import javax.swing.*;
  */
 public class Game extends JFrame implements Runnable
 {
-    public static final int WIDTH = 1270;// do not change this
-    public static final int HEIGHT = 800;
+    public static final int WIDTH = 1280;// do not change this
+    public static final int HEIGHT = 720;
 
     // 3D scene renders at half resolution, then upscaled
-    public static final int RENDER_WIDTH = WIDTH;
-    public static final int RENDER_HEIGHT = HEIGHT;
+    public static final int RENDER_WIDTH = 1280;
+    public static final int RENDER_HEIGHT = 720;
 
     private long lastTime;
     private Star[] stars;
@@ -202,6 +202,7 @@ public class Game extends JFrame implements Runnable
         GameState.gameState.reset();
         Camera.instance = null;
         SecondPlayer.instance = null;
+        Audio.stopBattleMusic();
         bootstrapWorldSystems();
 
         // Recreate stars
@@ -233,6 +234,7 @@ public class Game extends JFrame implements Runnable
             SecondPlayer.instance = new SecondPlayer(new Vector3(6, 0, 0), new Quaternion());
         }
 
+        Audio.playBattleMusic();
         activatePendingObjects();
     }
 
@@ -256,7 +258,7 @@ public class Game extends JFrame implements Runnable
 
         GameState.gameState.setMenuSelection(selection);
 
-        if (Input.input.isKeyPressed(KeyEvent.VK_ENTER) || Input.input.isKeyPressed(KeyEvent.VK_SPACE))
+        if (Input.input.isKeyPressed(KeyEvent.VK_E) || Input.input.isKeyPressed(KeyEvent.VK_I))
         {
             GameState.GameMode selectedMode;
             if (selection == MENU_OPTION_TWO)
