@@ -33,6 +33,9 @@ public class Game extends JFrame implements Runnable
     private static final int MENU_OPTION_TWO = 1;
     private static final int MENU_OPTION_COMPETITIVE = 2;
 
+    private MenuScene menuScene;
+    private GameState.GameMode pendingGameMode = GameState.GameMode.SINGLE_PLAYER;
+
     public Game()
     {
         setTitle("Elite");
@@ -82,6 +85,8 @@ public class Game extends JFrame implements Runnable
         {
             stars[i] = new Star(800 + Math.random() * 200);
         }
+
+        menuScene = new MenuScene();
 
         Audio.playAmbient();
         lastTime = System.nanoTime();
@@ -150,22 +155,52 @@ public class Game extends JFrame implements Runnable
 
         updateMenuInput();
 
-        boolean inMenu = GameState.gameState.getGameMode() == GameState.GameMode.MENU;
+        GameState.GameMode gameMode = GameState.gameState.getGameMode();
+        boolean inMenu   = gameMode == GameState.GameMode.MENU;
+        boolean inLaunch = gameMode == GameState.GameMode.LAUNCH_ANIMATION;
 
-        if (!inMenu)
+        if (!inMenu && !inLaunch)
         {
             GameState.gameState.updateCompetitiveTimer(delta);
         }
 
         // Update all game objects
         long t0 = System.nanoTime();
-        if (!inMenu)
+        if (!inMenu && !inLaunch)
         {
             GameObject.updateAll(delta);
+        }
+        else
+        {
+            // In menu / launch animation: only tick stars so the star field is alive.
+            // Full updateAll() is skipped to prevent enemy/asteroid spawners from running.
+            for (Star star : stars)
+            {
+                star.update(delta);
+            }
         }
         long t1 = System.nanoTime();
         Profiler.instance.setUpdateTime(t1 - t0);
         Profiler.instance.setGameObjectCount(GameObject.gameObjects.size());
+
+        // Menu / launch animation: set camera and queue preview ship triangles
+        // before the renderer flushes its triangle list.
+        if (inMenu)
+        {
+            menuScene.update(delta, GameState.gameState.getMenuSelection());
+        }
+        else if (inLaunch)
+        {
+            boolean showBoth = pendingGameMode == GameState.GameMode.TWO_PLAYER
+                || pendingGameMode == GameState.GameMode.COMPETITIVE;
+
+            if (menuScene.updateLaunch(delta, showBoth))
+            {
+                // Animation complete – transition to the selected game mode
+                GameState.gameState.setGameMode(pendingGameMode);
+                createPlayer();
+            }
+        }
 
         // Clear render buffer pixel array directly (rasterizer writes to same array)
         int[] renderPixels = ((DataBufferInt) renderBuffer.getRaster().getDataBuffer()).getData();
@@ -204,6 +239,7 @@ public class Game extends JFrame implements Runnable
         SecondPlayer.instance = null;
         Audio.stopBattleMusic();
         bootstrapWorldSystems();
+        menuScene.resetLaunch();
 
         // Recreate stars
         for (int i = 0; i < STAR_COUNT; i++)
@@ -274,8 +310,9 @@ public class Game extends JFrame implements Runnable
                 selectedMode = GameState.GameMode.SINGLE_PLAYER;
             }
 
-            GameState.gameState.setGameMode(selectedMode);
-            createPlayer();
+            GameState.gameState.setGameMode(GameState.GameMode.LAUNCH_ANIMATION);
+            pendingGameMode = selectedMode;
+            menuScene.resetLaunch();
         }
     }
 

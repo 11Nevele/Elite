@@ -10,6 +10,7 @@ public class GameState
     public enum GameMode
     {
         MENU,
+        LAUNCH_ANIMATION,
         SINGLE_PLAYER,
         TWO_PLAYER,
         COMPETITIVE

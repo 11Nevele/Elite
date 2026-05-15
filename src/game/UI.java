@@ -33,9 +33,17 @@ public class UI
 
     public void draw(Graphics g)
     {
-        if (GameState.gameState.getGameMode() == GameState.GameMode.MENU)
+        GameState.GameMode mode = GameState.gameState.getGameMode();
+
+        if (mode == GameState.GameMode.MENU)
         {
             drawMainMenu(g);
+            return;
+        }
+
+        if (mode == GameState.GameMode.LAUNCH_ANIMATION)
+        {
+            drawLaunchOverlay(g);
             return;
         }
 
@@ -259,19 +267,24 @@ public class UI
 
     private void drawMainMenu(Graphics g)
     {
-        g.setColor(Color.BLACK);
-        g.fillRect(0, 0, screenWidth, screenHeight);
+        // The 3D renderer already drew the star field and preview ships into the
+        // back buffer.  Draw a translucent panel only behind the text so the ships
+        // remain visible at the edges of the screen.
+        int panelW = 600;
+        int panelX = centerX - panelW / 2;
+        g.setColor(new Color(0, 0, 0, 150));
+        g.fillRoundRect(panelX, centerY - 195, panelW, 420, 20, 20);
 
         g.setFont(new Font("Monospaced", Font.BOLD, 64));
         g.setColor(Color.WHITE);
         String title = "ELITE";
         FontMetrics fm = g.getFontMetrics();
-        g.drawString(title, centerX - fm.stringWidth(title) / 2, centerY - 140);
+        g.drawString(title, centerX - fm.stringWidth(title) / 2, centerY - 130);
 
         g.setFont(new Font("Monospaced", Font.PLAIN, 22));
         String hint = "Select Mode: Up/Down + E/I";
         fm = g.getFontMetrics();
-        g.drawString(hint, centerX - fm.stringWidth(hint) / 2, centerY - 80);
+        g.drawString(hint, centerX - fm.stringWidth(hint) / 2, centerY - 68);
 
         int selection = GameState.gameState.getMenuSelection();
         g.setFont(new Font("Monospaced", Font.BOLD, 34));
@@ -289,7 +302,20 @@ public class UI
         g.setColor(Color.GRAY);
         String controls = "P1: WASD + Space    P2: Arrow Keys + Right Ctrl";
         fm = g.getFontMetrics();
-        g.drawString(controls, centerX - fm.stringWidth(controls) / 2, centerY + 150);
+        g.drawString(controls, centerX - fm.stringWidth(controls) / 2, centerY + 195);
+    }
+
+    private void drawLaunchOverlay(Graphics g)
+    {
+        g.setFont(new Font("Monospaced", Font.BOLD, 28));
+        FontMetrics fm = g.getFontMetrics();
+        String msg = "LAUNCHING...";
+        int tw = fm.stringWidth(msg);
+        // Draw a subtle shadow then the text
+        g.setColor(new Color(0, 0, 0, 160));
+        g.drawString(msg, centerX - tw / 2 + 2, centerY + 192);
+        g.setColor(new Color(255, 255, 255, 220));
+        g.drawString(msg, centerX - tw / 2, centerY + 190);
     }
 
     public void drawBullet(Graphics g, Vector3 bulletPos, Quaternion cameraRot, Vector3 cameraPos)
