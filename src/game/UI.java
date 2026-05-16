@@ -13,12 +13,9 @@ public class UI
 {
     public static UI ui;
 
-    private static final int BAR_WIDTH = 200;
-    private static final int BAR_HEIGHT = 20;
     private static final int BAR_MARGIN = 20;
     private static final int SCORE_MARGIN = 20;
     private static final int AIM_RETICLE_RADIUS = 10;
-    private static final double SECTOR_LENGTH = 1000;
     private static final String[] MENU_OPTIONS = {"Single Player", "Two Player", "Competitive"};
 
     private final int screenWidth;
@@ -60,7 +57,6 @@ public class UI
         }
 
         drawStatusPanel(g);
-        drawSectorBar(g);
         drawScore(g);
         drawHoldDistanceAim(g);
     }
@@ -89,24 +85,6 @@ public class UI
             g.drawString("TIME " + secondsLeft, x + 16, y + 100);
             g.drawString("P1 " + GameState.gameState.getScoreP1() + "   P2 " + GameState.gameState.getScoreP2(), x + 16, y + 124);
         }
-    }
-
-    private void drawSectorBar(Graphics g)
-    {
-        double sectorProgress = (GameState.gameState.getDistanceTravelled() % SECTOR_LENGTH) / SECTOR_LENGTH;
-
-        int x = BAR_MARGIN;
-        int y = screenHeight - BAR_MARGIN - BAR_HEIGHT;
-
-        g.setColor(Color.DARK_GRAY);
-        g.fillRect(x, y, BAR_WIDTH, BAR_HEIGHT);
-
-        g.setColor(GameColors.LASER_RED);
-        g.fillRect(x, y, (int)(BAR_WIDTH * sectorProgress), BAR_HEIGHT);
-
-        g.setColor(Color.WHITE);
-        g.drawRect(x, y, BAR_WIDTH, BAR_HEIGHT);
-        g.drawString("SECTOR", x, y - 5);
     }
 
     private void drawScore(Graphics g)
