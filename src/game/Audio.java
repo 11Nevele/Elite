@@ -30,7 +30,7 @@ public class Audio
         player1LaserClips = loadClipPoolSafely(soundDir + "Hyper 3.wav", LASER_VOICE_COUNT);
         player2LaserClips = loadClipPoolSafely(soundDir + "Hyper 4.wav", LASER_VOICE_COUNT);
         explosionClips = loadClipPoolSafely(soundDir + "explosion.wav", EXPLOSION_VOICE_COUNT);
-        ambientClip = loadClipSafely(soundDir + "Ambient.wav");
+        ambientClip = loadClipSafely(soundDir + "through space.wav");
         battleMusicClip = loadClipSafely(soundDir + "spacebattle.wav");
         initialized = true;
     }
