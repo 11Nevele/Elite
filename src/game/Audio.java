@@ -21,6 +21,7 @@ public class Audio
     private static int explosionIndex;
     private static Clip ambientClip;
     private static Clip battleMusicClip;
+    private static Clip menuSelectClip;
     private static boolean initialized = false;
 
     public static void init()
@@ -32,6 +33,7 @@ public class Audio
         explosionClips = loadClipPoolSafely(soundDir + "explosion.wav", EXPLOSION_VOICE_COUNT);
         ambientClip = loadClipSafely(soundDir + "through space.wav");
         battleMusicClip = loadClipSafely(soundDir + "spacebattle.wav");
+        menuSelectClip = loadClipSafely(soundDir + "di.wav");
         initialized = true;
     }
 
@@ -133,6 +135,17 @@ public class Audio
     public static void stopBattleMusic()
     {
         if (battleMusicClip != null) battleMusicClip.stop();
+    }
+
+
+    public static void playMenuSelect()
+    {
+        if (menuSelectClip != null)
+        {
+            if (menuSelectClip.isRunning()) menuSelectClip.stop();
+            menuSelectClip.setFramePosition(0);
+            menuSelectClip.start();
+        }
     }
 
     private static int playFromPool(Clip[] clips, int currentIndex)

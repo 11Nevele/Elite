@@ -291,9 +291,13 @@ public class Game extends JFrame implements Runnable
             selection = Math.min(MENU_OPTION_COMPETITIVE, selection + 1);
         }
 
+        if (selection != GameState.gameState.getMenuSelection())
+        {
+            Audio.playMenuSelect();
+        }
         GameState.gameState.setMenuSelection(selection);
 
-        if (Input.input.isKeyPressed(KeyEvent.VK_E) || Input.input.isKeyPressed(KeyEvent.VK_I))
+        if (Input.input.isKeyPressed(KeyEvent.VK_Q) || Input.input.isKeyPressed(KeyEvent.VK_U))
         {
             GameState.GameMode selectedMode;
             if (selection == MENU_OPTION_TWO)
