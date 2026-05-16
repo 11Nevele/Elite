@@ -127,7 +127,21 @@ public class Camera extends CollidableRenderable
 
     public static Vector3 getWorldScrollVelocity()
     {
-        if (instance == null || GameState.gameState == null || GameState.gameState.isDead())
+        if (instance == null)
+        {
+            // No live camera – return a default scroll during menu/launch so stars animate
+            if (GameState.gameState != null)
+            {
+                GameState.GameMode mode = GameState.gameState.getGameMode();
+                if (mode == GameState.GameMode.MENU || mode == GameState.GameMode.LAUNCH_ANIMATION)
+                {
+                    return new Vector3(0, 0, -SCROLL_SPEED);
+                }
+            }
+            return new Vector3();
+        }
+
+        if (GameState.gameState == null || GameState.gameState.isDead())
         {
             return new Vector3();
         }

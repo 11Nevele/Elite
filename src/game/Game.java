@@ -270,7 +270,6 @@ public class Game extends JFrame implements Runnable
             SecondPlayer.instance = new SecondPlayer(new Vector3(6, 0, 0), new Quaternion());
         }
 
-        Audio.playBattleMusic();
         activatePendingObjects();
     }
 
@@ -313,6 +312,8 @@ public class Game extends JFrame implements Runnable
             GameState.gameState.setGameMode(GameState.GameMode.LAUNCH_ANIMATION);
             pendingGameMode = selectedMode;
             menuScene.resetLaunch();
+            Audio.stopAmbient();
+            Audio.playBattleMusic();
         }
     }
 

@@ -10,7 +10,7 @@ public class Star extends GameObject
 {
     private static final double FIELD_WIDTH = 2000;
     private static final double FIELD_HEIGHT = 2000;
-    private static final double BEHIND_BUFFER = 40;
+    private static final double BEHIND_BUFFER = -300;
     private static final double FORWARD_BUFFER = 160;
     private static final double WRAP_JITTER = 140;
     private static final double STAR_SCROLL_MULTIPLIER = 10;
@@ -40,9 +40,10 @@ public class Star extends GameObject
 
         position = position.plus(Camera.getWorldScrollDelta(delta).multiply(STAR_SCROLL_MULTIPLIER));
 
-        if (Camera.instance != null && position.getZ() < Camera.instance.position.getZ() + BEHIND_BUFFER)
+        Vector3 anchor = Camera.instance != null ? Camera.instance.position : new Vector3();
+        if (position.getZ() < anchor.getZ() + BEHIND_BUFFER)
         {
-            wrapAhead(Camera.instance.position);
+            wrapAhead(anchor);
         }
 
         Renderer.renderer.renderPoint(this.position, color, size);

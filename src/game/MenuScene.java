@@ -9,27 +9,33 @@ import game.engine.*;
  */
 public class MenuScene
 {
-    // ── showcase camera ──────────────────────────────────────────────────────
-    private static final double CAM_X           =   0;
-    private static final double CAM_Y           =   0;
-    private static final double CAM_Z           = -22;
-    private static final double CAM_PITCH_DEG   =  -8;   // slight nose-down look
+    // ── showcase camera (diagonal/front view) ───────────────────────────────
+    private static final double CAM_X = 20;
+    private static final double CAM_Y =  -3;
+    private static final double CAM_Z = -20;
 
     // ── ship display positions ───────────────────────────────────────────────
-    private static final double SHIP_Y          =   0;
-    private static final double SHIP_Z          =  12;
-    private static final double SINGLE_X        =   0;
-    private static final double P1_X            =  -5;
-    private static final double P2_X            =   5;
-    private static final double SHIP_SCALE      =   0.2;
-    private static final double SPIN_SPEED_DEG  =  30;   // gentle yaw per second
+    private static final double SHIP_Y         =  0;
+    private static final double SHIP_Z         =  0;
+    private static final double SINGLE_X       =  0;
+    private static final double P1_X           = -6;
+    private static final double P2_X           =  6;
+    private static final double SHIP_SCALE     =  0.2;
+    private static final double SPIN_SPEED_DEG =  0;
+
+    // ── idle wiggle ──────────────────────────────────────────────────────────
+    private static final double WIGGLE_PITCH_AMP = 3.0;   // degrees peak
+    private static final double WIGGLE_ROLL_AMP  = 2.0;   // degrees peak
+    private static final double WIGGLE_FREQ_A    = 0.45;  // Hz  (primary)
+    private static final double WIGGLE_FREQ_B    = 0.97;  // Hz  (secondary, inharmonic)
 
     // ── launch animation ─────────────────────────────────────────────────────
-    private static final double LAUNCH_DURATION    = 2.4;  // seconds
-    private static final double LAUNCH_ACCEL       = 180;  // units / sec²
-    private static final double LAUNCH_CAM_CREEP   =   8;  // cam Z advance / sec
-    private static final double LAUNCH_PITCH_RATE  =  22;  // nose-up deg / sec
-    private static final double LAUNCH_MAX_PITCH   =  18;  // nose-up cap (deg)
+    // Camera sweeps from the menu side position (CAM_X, CAM_Y, CAM_Z) to the
+    // front position, always looking at the origin where the ships sit.
+    private static final double LAUNCH_DURATION  = 2.4;
+    private static final double LAUNCH_END_CAM_X =   0;
+    private static final double LAUNCH_END_CAM_Y =   0;
+    private static final double LAUNCH_END_CAM_Z = -20;
 
     private final Renderable p1Ship;
     private final Renderable p2Ship;
@@ -37,6 +43,7 @@ public class MenuScene
 
     private double spinAngle  = 0;   // accumulated yaw during menu (degrees)
     private double launchTimer = 0;  // elapsed time since launch triggered
+    private double wiggleTime  = 0;  // runs continuously for idle animation
 
     public MenuScene()
     {
@@ -65,22 +72,24 @@ public class MenuScene
      */
     public void update(double delta, int menuSelection)
     {
-        spinAngle += SPIN_SPEED_DEG * delta;
+        spinAngle  += SPIN_SPEED_DEG * delta;
+        wiggleTime += delta;
         boolean showBoth = menuSelection != 0;
 
-        Quaternion spin = Quaternion.yaw(spinAngle).multiply(uprightRot).normalize();
+        Quaternion base = Quaternion.yaw(spinAngle).multiply(uprightRot).normalize();
 
-        setCamera(CAM_Z, CAM_PITCH_DEG);
+        Vector3 camPos = new Vector3(CAM_X, CAM_Y, CAM_Z);
+        Renderer.renderer.updateCamera(camPos, lookAt(camPos, new Vector3(0, 0, 0)));
 
         double p1X = showBoth ? P1_X : SINGLE_X;
         p1Ship.position = new Vector3(p1X, SHIP_Y, SHIP_Z);
-        p1Ship.rotation  = spin;
+        p1Ship.rotation  = base.multiply(wiggle(wiggleTime, 0.0)).normalize();
         Renderer.renderer.render(p1Ship);
 
         if (showBoth)
         {
             p2Ship.position = new Vector3(P2_X, SHIP_Y, SHIP_Z);
-            p2Ship.rotation  = spin;
+            p2Ship.rotation  = base.multiply(wiggle(wiggleTime, Math.PI)).normalize();
             Renderer.renderer.render(p2Ship);
         }
     }
@@ -98,26 +107,29 @@ public class MenuScene
     {
         launchTimer += delta;
 
-        // Kinematic Z offset along rail  (s = ½ a t²)
-        double shipZ = SHIP_Z + 0.5 * LAUNCH_ACCEL * launchTimer * launchTimer;
+        // Smooth-step progress 0 → 1 over LAUNCH_DURATION
+        double t = Math.min(launchTimer / LAUNCH_DURATION, 1.0);
+        double smooth = t * t * (3.0 - 2.0 * t);
 
-        // Nose pitches up as engines fire
-        double nosePitch = Math.min(launchTimer * LAUNCH_PITCH_RATE, LAUNCH_MAX_PITCH);
-        Quaternion launchRot = Quaternion.pitch(-nosePitch).multiply(uprightRot).normalize();
+        // Camera interpolates from side position to front position
+        double camX = lerp(CAM_X, LAUNCH_END_CAM_X, smooth);
+        double camY = lerp(CAM_Y, LAUNCH_END_CAM_Y, smooth);
+        double camZ = lerp(CAM_Z, LAUNCH_END_CAM_Z, smooth);
 
-        // Camera creeps forward
-        double camZ = CAM_Z + launchTimer * LAUNCH_CAM_CREEP;
-        setCamera(camZ, CAM_PITCH_DEG);
+        Vector3 camPos = new Vector3(camX, camY, camZ);
+        Renderer.renderer.updateCamera(camPos, lookAt(camPos, new Vector3(0, 0, 0)));
 
+        // Ships stay at their menu positions — only the camera moves
+        Quaternion spin = Quaternion.yaw(spinAngle).multiply(uprightRot).normalize();
         double p1X = showBoth ? P1_X : SINGLE_X;
-        p1Ship.position = new Vector3(p1X, SHIP_Y, shipZ);
-        p1Ship.rotation  = launchRot;
+        p1Ship.position = new Vector3(p1X, SHIP_Y, SHIP_Z);
+        p1Ship.rotation  = spin;
         Renderer.renderer.render(p1Ship);
 
         if (showBoth)
         {
-            p2Ship.position = new Vector3(P2_X, SHIP_Y, shipZ);
-            p2Ship.rotation  = launchRot;
+            p2Ship.position = new Vector3(P2_X, SHIP_Y, SHIP_Z);
+            p2Ship.rotation  = spin;
             Renderer.renderer.render(p2Ship);
         }
 
@@ -133,9 +145,45 @@ public class MenuScene
 
     // ── helpers ──────────────────────────────────────────────────────────────
 
-    private static void setCamera(double camZ, double pitchDeg)
+    /**
+     * Returns a rotation quaternion so a camera at {@code from} looks toward {@code to}.
+     * Decomposed as yaw-around-world-Y then pitch-around-local-X (no roll).
+     */
+    private static Quaternion lookAt(Vector3 from, Vector3 to)
     {
-        Quaternion camRot = Quaternion.pitch(pitchDeg);
-        Renderer.renderer.updateCamera(new Vector3(CAM_X, CAM_Y, camZ), camRot);
+        double dx = to.getX() - from.getX();
+        double dy = to.getY() - from.getY();
+        double dz = to.getZ() - from.getZ();
+        double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (len < 1e-6) return new Quaternion();
+        dx /= len; dy /= len; dz /= len;
+
+        double yawDeg   = Math.toDegrees(Math.atan2(dx, dz));
+        double hLen     = Math.sqrt(dx * dx + dz * dz);
+        double pitchDeg = Math.toDegrees(Math.atan2(-dy, hLen));
+
+        // q.multiply(q2) applies q2 first → yaw applied before pitch
+        return Quaternion.pitch(pitchDeg).multiply(Quaternion.yaw(yawDeg)).normalize();
+    }
+
+    private static double lerp(double a, double b, double t)
+    {
+        return a + (b - a) * t;
+    }
+
+    /**
+     * Returns a small pitch+roll perturbation for the idle wiggle.
+     * Two inharmonic sine waves per axis keep the motion from ever feeling looped.
+     *
+     * @param t     running time in seconds
+     * @param phase per-ship phase offset (radians) so ships don't move in sync
+     */
+    private static Quaternion wiggle(double t, double phase)
+    {
+        double ta = 2 * Math.PI * WIGGLE_FREQ_A * t;
+        double tb = 2 * Math.PI * WIGGLE_FREQ_B * t;
+        double pitch = WIGGLE_PITCH_AMP * (Math.sin(ta + phase) + 0.4 * Math.sin(tb));
+        double roll  = WIGGLE_ROLL_AMP  * (Math.sin(ta * 0.7 + phase + 1.1) + 0.3 * Math.sin(tb + phase * 0.8));
+        return Quaternion.pitch(pitch).multiply(Quaternion.roll(roll));
     }
 }
