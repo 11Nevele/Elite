@@ -28,6 +28,7 @@ public class Game extends JFrame implements Runnable
     private final BufferedImage screenBuffer;
     private final BufferedImage renderBuffer;
     private volatile boolean running;
+    private boolean wasDead;
     private final int targetFPS = 60;
     private static final int MENU_OPTION_SINGLE = 0;
     private static final int MENU_OPTION_TWO = 1;
@@ -154,6 +155,14 @@ public class Game extends JFrame implements Runnable
         }
 
         updateMenuInput();
+
+        boolean isDead = GameState.gameState.isDead();
+        if (isDead && !wasDead)
+        {
+            Audio.stopBattleMusic();
+            Audio.playAmbient();
+        }
+        wasDead = isDead;
 
         GameState.GameMode gameMode = GameState.gameState.getGameMode();
         boolean inMenu   = gameMode == GameState.GameMode.MENU;
