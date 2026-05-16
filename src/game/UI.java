@@ -2,6 +2,9 @@ package game;
 
 import game.engine.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import javax.imageio.ImageIO;
 
 /**
  * Handles HUD rendering for the rail-shooter prototype.
@@ -22,6 +25,9 @@ public class UI
     private final int screenHeight;
     private final int centerX;
     private final int centerY;
+
+    private BufferedImage instructionImage;
+    private boolean instructionImageLoaded = false;
 
     public UI(int width, int height)
     {
@@ -267,11 +273,34 @@ public class UI
 
     private void drawMainMenu(Graphics g)
     {
+        if (!instructionImageLoaded)
+        {
+            instructionImageLoaded = true;
+            try
+            {
+                instructionImage = ImageIO.read(new File("Model" + File.separator + "ArcadeInstruction.png"));
+            }
+            catch (java.io.IOException e)
+            {
+                instructionImage = null;
+            }
+        }
+
+        if (instructionImage != null)
+        {
+            int imgW = 320;
+            int imgH = instructionImage.getHeight() * imgW / instructionImage.getWidth();
+            int imgX = screenWidth - imgW - 20;
+            int imgY = screenHeight - imgH - 20;
+            g.drawImage(instructionImage, imgX, imgY, imgW, imgH, null);
+        }
+
         // The 3D renderer already drew the star field and preview ships into the
         // back buffer.  Draw a translucent panel only behind the text so the ships
         // remain visible at the edges of the screen.
-        int panelW = 600;
-        int panelX = centerX - panelW / 2;
+        int panelW = 480;
+        int panelX = 30;
+        int panelCX = panelX + panelW / 2;   // horizontal centre of the left panel
         g.setColor(new Color(0, 0, 0, 150));
         g.fillRoundRect(panelX, centerY - 195, panelW, 420, 20, 20);
 
@@ -279,12 +308,7 @@ public class UI
         g.setColor(Color.WHITE);
         String title = "ELITE";
         FontMetrics fm = g.getFontMetrics();
-        g.drawString(title, centerX - fm.stringWidth(title) / 2, centerY - 130);
-
-        g.setFont(new Font("Monospaced", Font.PLAIN, 22));
-        String hint = "Select Mode: Up/Down + E/I";
-        fm = g.getFontMetrics();
-        g.drawString(hint, centerX - fm.stringWidth(hint) / 2, centerY - 68);
+        g.drawString(title, panelCX - fm.stringWidth(title) / 2, centerY - 130);
 
         int selection = GameState.gameState.getMenuSelection();
         g.setFont(new Font("Monospaced", Font.BOLD, 34));
@@ -295,14 +319,9 @@ public class UI
             String option = (selected ? "> " : "  ") + MENU_OPTIONS[i];
             int y = centerY + i * 54;
             fm = g.getFontMetrics();
-            g.drawString(option, centerX - fm.stringWidth(option) / 2, y);
+            g.drawString(option, panelCX - fm.stringWidth(option) / 2, y);
         }
 
-        g.setFont(new Font("Monospaced", Font.PLAIN, 18));
-        g.setColor(Color.GRAY);
-        String controls = "P1: WASD + Space    P2: Arrow Keys + Right Ctrl";
-        fm = g.getFontMetrics();
-        g.drawString(controls, centerX - fm.stringWidth(controls) / 2, centerY + 195);
     }
 
     private void drawLaunchOverlay(Graphics g)

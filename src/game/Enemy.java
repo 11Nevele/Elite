@@ -34,8 +34,8 @@ public class Enemy extends CollidableRenderable
     private static final double ENEMY_BULLET_SPEED = 20;
     private static final double ENEMY_BULLET_LIFETIME = 10;
     private static final double SHOT_MUZZLE_OFFSET = 0;
-    private static final double MIN_SHOT_INTERVAL = 3;
-    private static final double MAX_SHOT_INTERVAL = 6;
+    private static final double MIN_SHOT_INTERVAL = 2;
+    private static final double MAX_SHOT_INTERVAL = 4;
     private static final double HORIZONTAL_AIM_OFFSET = 3;
     private static final double VERTICAL_AIM_OFFSET = 3;
 

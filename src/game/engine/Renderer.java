@@ -15,12 +15,10 @@ public class Renderer
     public static Renderer renderer;
 
     private static final double REF_BASE_SCALE = 700;
-    private static final double REF_ZOOM_SCALE = 2500;
     private static final double REF_SPEED_SCALE = 200;
     private static final double REF_WIDTH = 1920;
 
     private final double BASE_SCALE;
-    private final double ZOOM_SCALE;
     private final double SPEED_SCALE;
 
     private Graphics g;
@@ -69,7 +67,6 @@ public class Renderer
         // Scale projection constants proportionally to render resolution
         double scaleFactor = width / REF_WIDTH;
         BASE_SCALE = REF_BASE_SCALE * scaleFactor;
-        ZOOM_SCALE = REF_ZOOM_SCALE * scaleFactor;
         SPEED_SCALE = REF_SPEED_SCALE * scaleFactor;
         baseScale = BASE_SCALE;
 
@@ -306,11 +303,6 @@ public class Renderer
         this.g = g;
         if (Input.input.isKeyPressed(KeyEvent.VK_F4))
             collisionDebugVisible = !collisionDebugVisible;
-
-        if (Input.input.keys[KeyEvent.VK_F])
-            baseScale = ZOOM_SCALE;
-        else
-            baseScale = BASE_SCALE;
 
         int totalTris = triangleList.size();
 
