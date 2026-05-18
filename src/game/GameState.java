@@ -7,6 +7,8 @@ import game.engine.CollisionLayer;
  */
 public class GameState
 {
+    private static final HighScoreRecorder HIGH_SCORE_RECORDER = new HighScoreRecorder();
+
     public enum GameMode
     {
         MENU,
@@ -30,7 +32,8 @@ public class GameState
 
     private boolean crashed;
     private boolean noFuel;
-    private int highScore;
+    private int singlePlayerHighScore;
+    private int twoPlayerHighScore;
     private int score;
     private int scoreP1;
     private int scoreP2;
@@ -48,6 +51,9 @@ public class GameState
 
     public GameState()
     {
+        HighScoreRecorder.HighScores highScores = HIGH_SCORE_RECORDER.load();
+        singlePlayerHighScore = highScores.getSinglePlayerHighScore();
+        twoPlayerHighScore = highScores.getTwoPlayerHighScore();
         reset();
     }
 
@@ -77,14 +83,25 @@ public class GameState
     public boolean isNoFuel() { return noFuel; }
     public void setNoFuel(boolean noFuel) { this.noFuel = noFuel; }
 
-    public int getHighScore() { return highScore; }
-    public void setHighScore(int highScore) { this.highScore = highScore; }
+    public int getHighScore()
+    {
+        return switch (gameMode)
+        {
+            case SINGLE_PLAYER -> singlePlayerHighScore;
+            case TWO_PLAYER -> twoPlayerHighScore;
+            default -> 0;
+        };
+    }
+
+    public int getSinglePlayerHighScore() { return singlePlayerHighScore; }
+
+    public int getTwoPlayerHighScore() { return twoPlayerHighScore; }
 
     public int getScore() { return score; }
     public void setScore(int score)
     {
         this.score = score;
-        highScore = Math.max(highScore, score);
+        updateRecordedHighScore(score);
     }
 
     public void addScore(int points)
@@ -99,13 +116,37 @@ public class GameState
     public void addScoreP1(int points)
     {
         scoreP1 += points;
-        highScore = Math.max(highScore, scoreP1);
     }
 
     public void addScoreP2(int points)
     {
         scoreP2 += points;
-        highScore = Math.max(highScore, scoreP2);
+    }
+
+    private void updateRecordedHighScore(int candidateScore)
+    {
+        if (gameMode == GameMode.SINGLE_PLAYER)
+        {
+            if (candidateScore <= singlePlayerHighScore)
+            {
+                return;
+            }
+
+            singlePlayerHighScore = candidateScore;
+            HIGH_SCORE_RECORDER.save(singlePlayerHighScore, twoPlayerHighScore);
+            return;
+        }
+
+        if (gameMode == GameMode.TWO_PLAYER)
+        {
+            if (candidateScore <= twoPlayerHighScore)
+            {
+                return;
+            }
+
+            twoPlayerHighScore = candidateScore;
+            HIGH_SCORE_RECORDER.save(singlePlayerHighScore, twoPlayerHighScore);
+        }
     }
 
     public boolean isPlayer1Dead() { return player1Dead; }

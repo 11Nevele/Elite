@@ -96,9 +96,6 @@ public class UI
         {
             String scoreText = "P1: " + GameState.gameState.getScoreP1() + "  P2: " + GameState.gameState.getScoreP2();
             g.drawString(scoreText, screenWidth - SCORE_MARGIN - 320, SCORE_MARGIN + 20);
-
-            String highScoreText = "HIGH: " + GameState.gameState.getHighScore();
-            g.drawString(highScoreText, screenWidth - SCORE_MARGIN - 320, SCORE_MARGIN + 45);
             return;
         }
 
@@ -231,9 +228,13 @@ public class UI
             textWidth = fm.stringWidth(scoreMsg);
             g.drawString(scoreMsg, centerX - textWidth / 2, centerY + 20);
 
+            String highScoreMsg = "High Score: " + GameState.gameState.getHighScore();
+            textWidth = fm.stringWidth(highScoreMsg);
+            g.drawString(highScoreMsg, centerX - textWidth / 2, centerY + 50);
+
             String waveMsg = "Wave: " + Math.max(1, GameState.gameState.getCurrentWave());
             textWidth = fm.stringWidth(waveMsg);
-            g.drawString(waveMsg, centerX - textWidth / 2, centerY + 50);
+            g.drawString(waveMsg, centerX - textWidth / 2, centerY + 80);
         }
 
         g.setFont(new Font("Monospaced", Font.PLAIN, 24));
@@ -241,7 +242,7 @@ public class UI
         String restartMsg = "Press any button to return to menu";
         fm = g.getFontMetrics();
         textWidth = fm.stringWidth(restartMsg);
-        g.drawString(restartMsg, centerX - textWidth / 2, centerY + 90);
+        g.drawString(restartMsg, centerX - textWidth / 2, centerY+200);
 
         if (Input.input.isAnyKeyPressed())
         {
@@ -299,6 +300,17 @@ public class UI
             fm = g.getFontMetrics();
             g.drawString(option, panelCX - fm.stringWidth(option) / 2, y);
         }
+
+        g.setFont(new Font("Monospaced", Font.PLAIN, 22));
+        g.setColor(Color.WHITE);
+        String highScoreText = switch (selection)
+        {
+            case 0 -> "HIGHSCORE: " + GameState.gameState.getSinglePlayerHighScore();
+            case 1 -> "HIGHSCORE: " + GameState.gameState.getTwoPlayerHighScore();
+            default -> "";
+        };
+        fm = g.getFontMetrics();
+        g.drawString(highScoreText, panelCX - fm.stringWidth(highScoreText) / 2, centerY + 192);
 
     }
 
