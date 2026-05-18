@@ -108,11 +108,11 @@ public class UI
 
     private void drawHoldDistanceAim(Graphics g)
     {
-        if (Camera.instance != null)
+        if (Camera.instance != null && !GameState.gameState.isPlayer1Dead())
         {
             drawReticleForWeapons(g, Camera.instance.getWeapons(), new Color(255, 220, 120, 220));
         }
-        if (SecondPlayer.instance != null)
+        if (SecondPlayer.instance != null && !GameState.gameState.isPlayer2Dead())
         {
             drawReticleForWeapons(g, SecondPlayer.instance.getWeapons(), new Color(120, 220, 255, 220));
         }

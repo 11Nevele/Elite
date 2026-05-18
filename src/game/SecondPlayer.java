@@ -9,6 +9,7 @@ import java.awt.event.KeyEvent;
 public class SecondPlayer extends CollidableRenderable
 {
     public static SecondPlayer instance;
+    private static final Face[] DEAD_MODEL = new Face[0];
 
     private static final double MUZZLE_OFFSET = 8;
     private static final double PLAYER_BOUNCE_SPEED = 40;
@@ -40,6 +41,16 @@ public class SecondPlayer extends CollidableRenderable
     @Override
     public void update(double delta)
     {
+        if (GameState.gameState != null && GameState.gameState.isPlayer2Dead())
+        {
+            if (collisionLayer != CollisionLayer.NONE)
+            {
+                disableAfterDeath();
+            }
+            super.update(delta);
+            return;
+        }
+
         super.update(delta);
 
         bounceCooldownRemainingSec = Math.max(0, bounceCooldownRemainingSec - delta);
@@ -62,9 +73,24 @@ public class SecondPlayer extends CollidableRenderable
         weapons.update(delta, muzzlePos, shipRotation);
     }
 
+    private void disableAfterDeath()
+    {
+        collisionLayer = CollisionLayer.NONE;
+        model = DEAD_MODEL;
+        weapons.reset();
+        bounceVelocity = new Vector3();
+        bounceCooldownRemainingSec = 0;
+        bounceStunRemaining = 0;
+    }
+
     @Override
     public void onCollisionEnter(Collidable other)
     {
+        if (GameState.gameState.isPlayer2Dead())
+        {
+            return;
+        }
+
         int layer = other.getCollisionLayer();
         if (GameState.gameState.isCompetitiveMode() && layer == CollisionLayer.PLAYER && other instanceof Camera camera)
         {
@@ -80,10 +106,11 @@ public class SecondPlayer extends CollidableRenderable
             {
                 Explosion.generateExplosion(position, 20);
                 Audio.playExplosion();
-                Audio.stopBattleMusic();
-                if (GameState.gameState.isCompetitiveMode())
+                if (GameState.gameState.getGameMode() == GameState.GameMode.TWO_PLAYER
+                    || GameState.gameState.isCompetitiveMode())
                 {
                     GameState.gameState.markPlayerDead(CollisionLayer.PLAYER2);
+                    disableAfterDeath();
                 }
                 else
                 {

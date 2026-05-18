@@ -31,13 +31,13 @@ public class Enemy extends CollidableRenderable
     private static final double EXIT_DESPAWN_SIDE_DISTANCE = 460;
     private static final double EXIT_DESPAWN_VERTICAL_DISTANCE = 320;
     private static final double MAX_LIFETIME = 18;
-    private static final double ENEMY_BULLET_SPEED = 20;
+    private static final double ENEMY_BULLET_SPEED = 30;
     private static final double ENEMY_BULLET_LIFETIME = 10;
     private static final double SHOT_MUZZLE_OFFSET = 0;
     private static final double MIN_SHOT_INTERVAL = 2;
     private static final double MAX_SHOT_INTERVAL = 4;
-    private static final double HORIZONTAL_AIM_OFFSET = 3;
-    private static final double VERTICAL_AIM_OFFSET = 3;
+    private static final double HORIZONTAL_AIM_OFFSET = 2;
+    private static final double VERTICAL_AIM_OFFSET = 2;
 
     private final EntryType entryType;
     private final Vector3 holdAnchor;
@@ -260,11 +260,11 @@ public class Enemy extends CollidableRenderable
 
     private Vector3 getPlayerPosition()
     {
-        if (Camera.instance != null)
+        if (Camera.instance != null && !GameState.gameState.isPlayer1Dead())
         {
             return Camera.instance.position;
         }
-        if (SecondPlayer.instance != null)
+        if (SecondPlayer.instance != null && !GameState.gameState.isPlayer2Dead())
         {
             return SecondPlayer.instance.position;
         }
@@ -273,7 +273,10 @@ public class Enemy extends CollidableRenderable
 
     private Vector3 getRandomTargetPlayerPosition()
     {
-        if (Camera.instance != null && SecondPlayer.instance != null)
+        boolean player1Alive = Camera.instance != null && !GameState.gameState.isPlayer1Dead();
+        boolean player2Alive = SecondPlayer.instance != null && !GameState.gameState.isPlayer2Dead();
+
+        if (player1Alive && player2Alive)
         {
             return Math.random() < 0.5
                 ? Camera.instance.position
@@ -285,7 +288,8 @@ public class Enemy extends CollidableRenderable
 
     private boolean hasAnyPlayer()
     {
-        return Camera.instance != null || SecondPlayer.instance != null;
+        return (Camera.instance != null && !GameState.gameState.isPlayer1Dead())
+            || (SecondPlayer.instance != null && !GameState.gameState.isPlayer2Dead());
     }
 
     private void updateShooting(double delta)

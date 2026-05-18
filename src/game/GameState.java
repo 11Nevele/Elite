@@ -196,11 +196,18 @@ public class GameState
 
     public void markPlayerDead(int collisionLayer)
     {
-        if (!isCompetitiveMode())
+        if (gameMode == GameMode.SINGLE_PLAYER)
         {
             crashed = true;
             return;
         }
+
+        if (gameMode != GameMode.TWO_PLAYER && gameMode != GameMode.COMPETITIVE)
+        {
+            crashed = true;
+            return;
+        }
+
         if (winner != Winner.NONE)
         {
             return;
@@ -217,19 +224,15 @@ public class GameState
 
         if (player1Dead && player2Dead)
         {
-            resolveWinnerByScore();
+            if (isCompetitiveMode())
+            {
+                resolveWinnerByScore();
+            }
+            else
+            {
+                crashed = true;
+            }
             return;
-        }
-
-        if (player1Dead)
-        {
-            setWinner(Winner.PLAYER2);
-            return;
-        }
-
-        if (player2Dead)
-        {
-            setWinner(Winner.PLAYER1);
         }
     }
 

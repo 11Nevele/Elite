@@ -11,6 +11,7 @@ public class Camera extends CollidableRenderable
 {
     public static Camera instance;
     public static final double SCROLL_SPEED = 200;
+    private static final Face[] DEAD_MODEL = new Face[0];
 
     private static final double MUZZLE_OFFSET = 8;
     private static final double PLAYER_BOUNCE_SPEED = 40;
@@ -51,6 +52,16 @@ public class Camera extends CollidableRenderable
     @Override
     public void update(double delta)
     {
+        if (GameState.gameState != null && GameState.gameState.isPlayer1Dead())
+        {
+            if (collisionLayer != CollisionLayer.NONE)
+            {
+                disableAfterDeath();
+            }
+            updateAsDeadPlayer(delta);
+            return;
+        }
+
         super.update(delta);
 
         bounceCooldownRemainingSec = Math.max(0, bounceCooldownRemainingSec - delta);
@@ -84,9 +95,54 @@ public class Camera extends CollidableRenderable
         );
     }
 
+    private void updateAsDeadPlayer(double delta)
+    {
+        super.update(delta);
+
+        bounceCooldownRemainingSec = Math.max(0, bounceCooldownRemainingSec - delta);
+        bounceStunRemaining = Math.max(0, bounceStunRemaining - delta);
+
+        if (!GameState.gameState.isDead())
+        {
+            GameState.gameState.addDistance(SCROLL_SPEED * delta);
+        }
+
+        if (bounceVelocity.magnitude() > 0.01)
+        {
+            double decayFactor = Math.max(0, 1.0 - BOUNCE_VELOCITY_DRAG * delta);
+            bounceVelocity = bounceVelocity.multiply(decayFactor);
+        }
+
+        if (SecondPlayer.instance != null && !GameState.gameState.isPlayer2Dead())
+        {
+            position = new Vector3(SecondPlayer.instance.position);
+        }
+        else
+        {
+            position = position.plus(bounceVelocity.multiply(delta));
+        }
+
+        cameraController.updateRendererCamera(delta, position, railRotation, 0, 0);
+    }
+
+    private void disableAfterDeath()
+    {
+        collisionLayer = CollisionLayer.NONE;
+        model = DEAD_MODEL;
+        weapons.reset();
+        bounceVelocity = new Vector3();
+        bounceCooldownRemainingSec = 0;
+        bounceStunRemaining = 0;
+    }
+
     @Override
     public void onCollisionEnter(Collidable other)
     {
+        if (GameState.gameState.isPlayer1Dead())
+        {
+            return;
+        }
+
         int layer = other.getCollisionLayer();
         if (GameState.gameState.isCompetitiveMode() && layer == CollisionLayer.PLAYER2 && other instanceof SecondPlayer secondPlayer)
         {
@@ -102,10 +158,11 @@ public class Camera extends CollidableRenderable
             {
                 Explosion.generateExplosion(position, 20);
                 Audio.playExplosion();
-                Audio.stopBattleMusic();
-                if (GameState.gameState.isCompetitiveMode())
+                if (GameState.gameState.getGameMode() == GameState.GameMode.TWO_PLAYER
+                    || GameState.gameState.isCompetitiveMode())
                 {
                     GameState.gameState.markPlayerDead(CollisionLayer.PLAYER);
+                    disableAfterDeath();
                 }
                 else
                 {
