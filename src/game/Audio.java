@@ -11,6 +11,7 @@ public class Audio
 {
     private static final int LASER_VOICE_COUNT = 8;
     private static final int EXPLOSION_VOICE_COUNT = 8;
+    private static final float DEFAULT_SAMPLE_RATE = 44100.0f;
 
     private static Clip[] player1LaserClips;
     private static Clip[] player2LaserClips;
@@ -66,32 +67,73 @@ public class Audio
         File file = new File(path);
         if (!file.exists()) return null;
 
-        AudioInputStream sourceStream = AudioSystem.getAudioInputStream(file);
-        AudioFormat sourceFormat = sourceStream.getFormat();
-        AudioFormat decodedFormat = sourceFormat;
-
-        if (sourceFormat.getEncoding() != AudioFormat.Encoding.PCM_SIGNED || sourceFormat.getSampleSizeInBits() != 16)
+        AudioInputStream sourceStream = null;
+        AudioInputStream playableStream = null;
+        try
         {
-            decodedFormat = new AudioFormat(
-                AudioFormat.Encoding.PCM_SIGNED,
-                sourceFormat.getSampleRate(),
-                16,
-                sourceFormat.getChannels(),
-                sourceFormat.getChannels() * 2,
-                sourceFormat.getSampleRate(),
-                false
-            );
-        }
+            sourceStream = AudioSystem.getAudioInputStream(file);
+            AudioFormat sourceFormat = sourceStream.getFormat();
+            AudioFormat clipFormat = createClipFormat(sourceFormat);
 
-        AudioInputStream stream = sourceStream;
-        if (!sourceFormat.matches(decodedFormat))
+            playableStream = requiresConversion(sourceFormat, clipFormat)
+                ? AudioSystem.getAudioInputStream(clipFormat, sourceStream)
+                : sourceStream;
+
+            DataLine.Info info = new DataLine.Info(Clip.class, playableStream.getFormat());
+            Clip clip = (Clip) AudioSystem.getLine(info);
+            clip.open(playableStream);
+            return clip;
+        }
+        finally
         {
-            stream = AudioSystem.getAudioInputStream(decodedFormat, sourceStream);
+            if (playableStream != null)
+            {
+                playableStream.close();
+            }
+            else if (sourceStream != null)
+            {
+                sourceStream.close();
+            }
         }
+    }
 
-        Clip clip = AudioSystem.getClip();
-        clip.open(stream);
-        return clip;
+    private static AudioFormat createClipFormat(AudioFormat sourceFormat)
+    {
+        int channels = sourceFormat.getChannels() > 0 ? sourceFormat.getChannels() : 1;
+        float sampleRate = resolveRate(sourceFormat.getSampleRate(), sourceFormat.getFrameRate());
+
+        return new AudioFormat(
+            AudioFormat.Encoding.PCM_SIGNED,
+            sampleRate,
+            16,
+            channels,
+            channels * 2,
+            sampleRate,
+            false
+        );
+    }
+
+    private static boolean requiresConversion(AudioFormat sourceFormat, AudioFormat clipFormat)
+    {
+        return sourceFormat.getEncoding() != clipFormat.getEncoding()
+            || sourceFormat.getSampleSizeInBits() != clipFormat.getSampleSizeInBits()
+            || sourceFormat.getChannels() != clipFormat.getChannels()
+            || sourceFormat.getFrameSize() != clipFormat.getFrameSize()
+            || Float.compare(sourceFormat.getSampleRate(), clipFormat.getSampleRate()) != 0
+            || sourceFormat.isBigEndian();
+    }
+
+    private static float resolveRate(float sampleRate, float frameRate)
+    {
+        if (sampleRate > 0.0f)
+        {
+            return sampleRate;
+        }
+        if (frameRate > 0.0f)
+        {
+            return frameRate;
+        }
+        return DEFAULT_SAMPLE_RATE;
     }
 
     public static void playPlayer1Laser()
