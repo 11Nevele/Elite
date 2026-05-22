@@ -1,5 +1,8 @@
 package game;
 
+import java.util.ArrayDeque;
+import java.util.Arrays;
+
 /**
  * Manages keyboard input state.
  * Tracks which keys are currently pressed.
@@ -8,49 +11,76 @@ public class Input
 {
     public static Input input = new Input();
 
-    public boolean[] keys = new boolean[256];
-    private boolean[] prevKeys = new boolean[256];
+    private final boolean[] keys = new boolean[256];
+    private final boolean[] pressedKeys = new boolean[256];
+    private final ArrayDeque<Integer> pendingEvents = new ArrayDeque<>();
 
-    public void keyDown(int keyCode)
+    public synchronized void keyDown(int keyCode)
     {
-        if (keyCode >= 0 && keyCode < keys.length)
+        if (isValidKeyCode(keyCode))
         {
-            keys[keyCode] = true;
+            pendingEvents.addLast(keyCode + 1);
         }
     }
 
-    public void keyUp(int keyCode)
+    public synchronized void keyUp(int keyCode)
     {
-        if (keyCode >= 0 && keyCode < keys.length)
+        if (isValidKeyCode(keyCode))
         {
-            keys[keyCode] = false;
+            pendingEvents.addLast(-(keyCode + 1));
         }
     }
 
-    public void update()
+    public synchronized void update()
     {
-        System.arraycopy(keys, 0, prevKeys, 0, keys.length);
-    }
+        Arrays.fill(pressedKeys, false);
 
-    public boolean isKeyDown(int keyCode)
-    {
-        return keyCode >= 0 && keyCode < keys.length && keys[keyCode];
-    }
-
-    public boolean isKeyPressed(int keyCode)
-    {
-        return keyCode >= 0 && keyCode < keys.length && keys[keyCode] && !prevKeys[keyCode];
-    }
-
-    public boolean isAnyKeyPressed()
-    {
-        for (int keyCode = 0; keyCode < keys.length; keyCode++)
+        while (!pendingEvents.isEmpty())
         {
-            if (keys[keyCode] && !prevKeys[keyCode])
+            int encodedEvent = pendingEvents.removeFirst();
+            boolean isPressEvent = encodedEvent > 0;
+            int keyCode = Math.abs(encodedEvent) - 1;
+
+            if (isPressEvent)
+            {
+                if (!keys[keyCode])
+                {
+                    pressedKeys[keyCode] = true;
+                }
+
+                keys[keyCode] = true;
+            }
+            else
+            {
+                keys[keyCode] = false;
+            }
+        }
+    }
+
+    public synchronized boolean isKeyDown(int keyCode)
+    {
+        return isValidKeyCode(keyCode) && keys[keyCode];
+    }
+
+    public synchronized boolean isKeyPressed(int keyCode)
+    {
+        return isValidKeyCode(keyCode) && pressedKeys[keyCode];
+    }
+
+    public synchronized boolean isAnyKeyPressed()
+    {
+        for (boolean pressedKey : pressedKeys)
+        {
+            if (pressedKey)
             {
                 return true;
             }
         }
         return false;
+    }
+
+    private boolean isValidKeyCode(int keyCode)
+    {
+        return keyCode >= 0 && keyCode < keys.length;
     }
 }

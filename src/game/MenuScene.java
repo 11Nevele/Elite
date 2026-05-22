@@ -68,13 +68,13 @@ public class MenuScene
      * appropriate ship model(s) based on the currently highlighted menu option.
      *
      * @param delta         seconds since last frame
-     * @param menuSelection 0 = single-player, 1 = two-player, 2 = competitive
+         * @param menuSelection 0 = single-player, 1 = two-player, 2 = competitive, 3 = quit
      */
     public void update(double delta, int menuSelection)
     {
         spinAngle  += SPIN_SPEED_DEG * delta;
         wiggleTime += delta;
-        boolean showBoth = menuSelection != 0;
+                boolean showBoth = menuSelection == 1 || menuSelection == 2;
 
         Quaternion base = Quaternion.yaw(spinAngle).multiply(uprightRot).normalize();
 

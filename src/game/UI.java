@@ -16,7 +16,7 @@ public class UI
     private static final int BAR_MARGIN = 20;
     private static final int SCORE_MARGIN = 20;
     private static final int AIM_RETICLE_RADIUS = 10;
-    private static final String[] MENU_OPTIONS = {"Single Player", "Two Player", "Competitive"};
+    private static final String[] MENU_OPTIONS = {"Single Player", "Two Player", "Competitive", "Quit Game"};
 
     private final int screenWidth;
     private final int screenHeight;
@@ -58,6 +58,7 @@ public class UI
 
         drawStatusPanel(g);
         drawScore(g);
+        drawQuitButton(g);
         drawHoldDistanceAim(g);
     }
 
@@ -312,6 +313,26 @@ public class UI
         fm = g.getFontMetrics();
         g.drawString(highScoreText, panelCX - fm.stringWidth(highScoreText) / 2, centerY + 192);
 
+    }
+
+    private void drawQuitButton(Graphics g)
+    {
+        int buttonWidth = 240;
+        int buttonHeight = 42;
+        int x = screenWidth - buttonWidth - 20;
+        int y = screenHeight - buttonHeight - 20;
+
+        g.setColor(new Color(0, 0, 0, 150));
+        g.fillRoundRect(x, y, buttonWidth, buttonHeight, 12, 12);
+        g.setColor(Color.WHITE);
+        g.drawRoundRect(x, y, buttonWidth, buttonHeight, 12, 12);
+
+        g.setFont(new Font("Monospaced", Font.BOLD, 20));
+        String label = "ESC  QUIT TO MENU";
+        FontMetrics fm = g.getFontMetrics();
+        int textX = x + (buttonWidth - fm.stringWidth(label)) / 2;
+        int textY = y + ((buttonHeight - fm.getHeight()) / 2) + fm.getAscent();
+        g.drawString(label, textX, textY);
     }
 
     private void drawLaunchOverlay(Graphics g)

@@ -33,17 +33,22 @@ public class Game extends JFrame implements Runnable
     private static final int MENU_OPTION_SINGLE = 0;
     private static final int MENU_OPTION_TWO = 1;
     private static final int MENU_OPTION_COMPETITIVE = 2;
+    private static final int MENU_OPTION_QUIT = 3;
 
     private MenuScene menuScene;
     private GameState.GameMode pendingGameMode = GameState.GameMode.SINGLE_PLAYER;
+    private final GraphicsDevice screenDevice;
+    private final boolean exclusiveFullscreen;
 
     public Game()
     {
+        screenDevice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        exclusiveFullscreen = screenDevice.isFullScreenSupported();
+
         setTitle("Elite");
-        setSize(WIDTH, HEIGHT);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
-        setLocationRelativeTo(null);
+        configureWindow();
 
         screenBuffer = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_ARGB);
         renderBuffer = new BufferedImage(RENDER_WIDTH, RENDER_HEIGHT, BufferedImage.TYPE_INT_ARGB);
@@ -65,6 +70,29 @@ public class Game extends JFrame implements Runnable
 
         init();
         setVisible(true);
+        enterFullscreen();
+        requestFocus();
+    }
+
+    private void configureWindow()
+    {
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        setUndecorated(true);
+        setSize(screenSize.width, screenSize.height);
+        setLocation(0, 0);
+
+        if (!exclusiveFullscreen)
+        {
+            setExtendedState(JFrame.MAXIMIZED_BOTH);
+        }
+    }
+
+    private void enterFullscreen()
+    {
+        if (exclusiveFullscreen)
+        {
+            //screenDevice.setFullScreenWindow(this);
+        }
     }
 
     private void init()
@@ -120,7 +148,7 @@ public class Game extends JFrame implements Runnable
             Graphics g = getGraphics();
             if (g != null)
             {
-                g.drawImage(screenBuffer, 0, 0, null);
+                presentFrame(g);
                 g.dispose();
             }
 
@@ -133,6 +161,22 @@ public class Game extends JFrame implements Runnable
                 catch (InterruptedException e) { Thread.currentThread().interrupt(); }
             }
         }
+    }
+
+    private void presentFrame(Graphics g)
+    {
+        int windowWidth = Math.max(1, getWidth());
+        int windowHeight = Math.max(1, getHeight());
+        double scale = Math.min((double) windowWidth / WIDTH, (double) windowHeight / HEIGHT);
+        int drawWidth = Math.max(1, (int) Math.round(WIDTH * scale));
+        int drawHeight = Math.max(1, (int) Math.round(HEIGHT * scale));
+        int drawX = (windowWidth - drawWidth) / 2;
+        int drawY = (windowHeight - drawHeight) / 2;
+
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, windowWidth, windowHeight);
+        g.drawImage(screenBuffer, drawX, drawY, drawWidth, drawHeight, null);
+        Toolkit.getDefaultToolkit().sync();
     }
 
     private void gameLoop(Graphics renderG, Graphics screenG)
@@ -154,7 +198,11 @@ public class Game extends JFrame implements Runnable
             restartGame();
         }
 
-        updateMenuInput();
+        boolean returnedToMenu = handleQuitToMenuInput();
+        if (!returnedToMenu)
+        {
+            updateMenuInput();
+        }
 
         boolean isDead = GameState.gameState.isDead();
         if (isDead && !wasDead)
@@ -255,10 +303,13 @@ public class Game extends JFrame implements Runnable
         {
             stars[i] = new Star(800 + Math.random() * 200);
         }
+
+        wasDead = false;
     }
 
     public static void main(String[] args)
     {
+        System.setProperty("javax.sound.sampled.Clip", "#alsa_playback.java");
         Game game = new Game();
         game.start();
     }
@@ -297,7 +348,7 @@ public class Game extends JFrame implements Runnable
         }
         if (Input.input.isKeyPressed(KeyEvent.VK_DOWN) || Input.input.isKeyPressed(KeyEvent.VK_S))
         {
-            selection = Math.min(MENU_OPTION_COMPETITIVE, selection + 1);
+            selection = Math.min(MENU_OPTION_QUIT, selection + 1);
         }
 
         if (selection != GameState.gameState.getMenuSelection())
@@ -308,19 +359,18 @@ public class Game extends JFrame implements Runnable
 
         if (Input.input.isKeyPressed(KeyEvent.VK_Q) || Input.input.isKeyPressed(KeyEvent.VK_U))
         {
-            GameState.GameMode selectedMode;
-            if (selection == MENU_OPTION_TWO)
+            if (selection == MENU_OPTION_QUIT)
             {
-                selectedMode = GameState.GameMode.TWO_PLAYER;
+                quitApplication();
+                return;
             }
-            else if (selection == MENU_OPTION_COMPETITIVE)
+
+            GameState.GameMode selectedMode = switch (selection)
             {
-                selectedMode = GameState.GameMode.COMPETITIVE;
-            }
-            else
-            {
-                selectedMode = GameState.GameMode.SINGLE_PLAYER;
-            }
+                case MENU_OPTION_TWO -> GameState.GameMode.TWO_PLAYER;
+                case MENU_OPTION_COMPETITIVE -> GameState.GameMode.COMPETITIVE;
+                default -> GameState.GameMode.SINGLE_PLAYER;
+            };
 
             GameState.gameState.setGameMode(GameState.GameMode.LAUNCH_ANIMATION);
             pendingGameMode = selectedMode;
@@ -328,6 +378,38 @@ public class Game extends JFrame implements Runnable
             Audio.stopAmbient();
             Audio.playBattleMusic();
         }
+    }
+
+    private boolean handleQuitToMenuInput()
+    {
+        GameState.GameMode mode = GameState.gameState.getGameMode();
+        if (mode == GameState.GameMode.MENU || mode == GameState.GameMode.LAUNCH_ANIMATION)
+        {
+            return false;
+        }
+
+        if (!Input.input.isKeyPressed(KeyEvent.VK_ESCAPE))
+        {
+            return false;
+        }
+
+        Audio.stopBattleMusic();
+        Audio.playAmbient();
+        restartGame();
+        return true;
+    }
+
+    private void quitApplication()
+    {
+        running = false;
+
+        if (exclusiveFullscreen && screenDevice.getFullScreenWindow() == this)
+        {
+            screenDevice.setFullScreenWindow(null);
+        }
+
+        dispose();
+        System.exit(0);
     }
 
     private void bootstrapWorldSystems()
